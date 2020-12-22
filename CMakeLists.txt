@@ -91,11 +91,15 @@ foreach( src_file IN ITEMS ${SRC_FILES})
 	source_group("${group_name}" FILES "${src_file}")
 endforeach()
 
-#additional libraries, if needed
-#find_package(LIBNAME)
-#or
-#find_library(LIBNAME_LIBRARIES NAMES libname)
-#find_path(LIBNAME_INCLUDE_DIRS includefile.h)
-#
-#target_link_libraries(${PLUGIN_NAME} ${LIBNAME_LIBRARIES})
-#target_include_directories(${PLUGIN_NAME} PRIVATE ${LIBNAME_INCLUDE_DIRS})
+#additional libraries
+if (MSVC)
+	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../Resources/okFrontPanel.lib")
+elseif(LINUX)
+	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../Resources/libokFrontPanel.so")
+elseif(APPLE)
+	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../Resources/libokFrontPanel.dylib")
+	set_source_files_properties(${DLLDIR}/libokFrontPanel.dylib PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
+	target_sources(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../Resources/libokFrontPanel.dylib)
+endif()
+
+
