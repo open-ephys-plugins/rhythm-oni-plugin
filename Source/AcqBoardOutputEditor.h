@@ -55,6 +55,8 @@ namespace AcqBoardOutputNamespace {
 
         AcqBoardOutput* board;
 
+        void buttonEvent(Button* button);
+
         Array<float> durations;
 
 
@@ -65,6 +67,8 @@ namespace AcqBoardOutputNamespace {
         ScopedPointer<ComboBox> outputChannelSelector;
         ScopedPointer<ComboBox> gateChannelSelector;
         ScopedPointer<ComboBox> durationSelector;
+
+        ScopedPointer<UtilityButton> triggerButton;
 
         void timerCallback();
 

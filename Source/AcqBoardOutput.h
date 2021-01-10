@@ -80,6 +80,8 @@ namespace AcqBoardOutputNamespace {
 
         void setState(int channel, State state);
 
+        void triggerOutput();
+
     private:
 
         StreamingSocket socket;

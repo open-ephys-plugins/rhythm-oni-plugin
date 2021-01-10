@@ -35,7 +35,7 @@ namespace AcqBoardOutputNamespace {
 
         accumulator = 0;
 
-        desiredWidth = 150;
+        desiredWidth = 200;
 
         board = (AcqBoardOutput*)parentNode;
 
@@ -72,8 +72,6 @@ namespace AcqBoardOutputNamespace {
         gateChannelSelector->setSelectedId(1, dontSendNotification);
         addAndMakeVisible(gateChannelSelector);
 
-        durations.add(10.0f);
-        durations.add(50.0f);
         durations.add(100.0f);
         durations.add(500.0f);
         durations.add(1000.0f);
@@ -91,6 +89,11 @@ namespace AcqBoardOutputNamespace {
         durationSelector->setSelectedId(1, dontSendNotification);
         addAndMakeVisible(durationSelector);
 
+        triggerButton = new UtilityButton("Trigger", Font("Small Text", 13, Font::plain));
+        triggerButton->setBounds(80, 35, 80, 30);
+        triggerButton->addListener(this);
+        addAndMakeVisible(triggerButton);
+
     }
 
     AcqBoardOutputEditor::~AcqBoardOutputEditor()
@@ -100,16 +103,24 @@ namespace AcqBoardOutputNamespace {
     void AcqBoardOutputEditor::receivedEvent()
     {
 
-        //icon->setOpacity(0.8f);
-       // startTimer(50);
 
+    }
+
+    void AcqBoardOutputEditor::buttonEvent(Button* button)
+    {
+
+        if (button == triggerButton)
+        {
+            AcqBoardOutput* processor = (AcqBoardOutput*)getProcessor();
+            processor->triggerOutput();
+        }
     }
 
     void AcqBoardOutputEditor::comboBoxChanged(ComboBox* comboBoxThatHasChanged)
     {
         if (comboBoxThatHasChanged == outputChannelSelector)
         {
-            board->setOutputChannel(outputChannelSelector->getSelectedId() - 1);
+            board->setOutputChannel(outputChannelSelector->getSelectedId() - 2);
         }
         else if (comboBoxThatHasChanged == inputChannelSelector)
         {

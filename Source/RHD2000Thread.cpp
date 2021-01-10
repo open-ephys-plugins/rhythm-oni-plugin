@@ -1702,6 +1702,8 @@ bool RHD2000Thread::updateBuffer()
 
         evalBoard->setTtlOut(ttlOutArray);
 
+        std::cout << "Setting channel " << TTL_OUTPUT_INDEX << " to " << TTL_OUTPUT_STATE << std::endl;
+
         ttlOutputShouldChange = false;
     }
 
@@ -2495,8 +2497,6 @@ EventListener::EventListener(RHD2000Thread* board_) : Thread("Event Listener Thr
     std::cout << "Creating event listener on port 55555" << std::endl;
 
     bool result = baseSocket.createListener(55555);
-
-    //bool connected = (socket.waitUntilReady(true, 1000) == 1);
 
     startThread();
 

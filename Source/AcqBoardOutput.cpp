@@ -36,6 +36,7 @@ namespace AcqBoardOutputNamespace {
         , gateChannel(-1)
         , state(true)
         , acquisitionIsActive(false)
+        , durationMs(100)
     {
         setProcessorType(PROCESSOR_TYPE_SINK);
 
@@ -89,12 +90,17 @@ namespace AcqBoardOutputNamespace {
                 if (inputChannel == -1 || eventChannel == inputChannel)
                 {
 
-                    setState(outputChannel, HIGH);
-                    startTimer(durationMs);
+                    triggerOutput();
 
                 }
             }
         }
+    }
+
+    void AcqBoardOutput::triggerOutput()
+    {
+        setState(outputChannel, HIGH);
+        startTimer(durationMs);
     }
 
     void AcqBoardOutput::timerCallback()
