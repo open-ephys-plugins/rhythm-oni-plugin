@@ -93,13 +93,13 @@ endforeach()
 
 #additional libraries
 if (MSVC)
-	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../Resources/okFrontPanel.lib")
+	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/okFrontPanel.lib")
 elseif(LINUX)
-	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../Resources/libokFrontPanel.so")
+	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.so")
 elseif(APPLE)
-	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/../Resources/libokFrontPanel.dylib")
+	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib")
 	set_source_files_properties(${DLLDIR}/libokFrontPanel.dylib PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
-	target_sources(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../Resources/libokFrontPanel.dylib)
+	target_sources(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib)
 endif()
 
 
