@@ -21,10 +21,13 @@
 
 */
 
-#include "RHD2000Editor.h"
+#include "DeviceEditor.h"
+#include "DeviceThread.h"
+
+#include "UI/ChannelCanvas.h"
+
 #include <cmath>
 
-#include "RHD2000Thread.h"
 using namespace RhythmNode;
 
 #ifdef WIN32
@@ -36,526 +39,15 @@ inline double round(double x)
 #endif
 #endif
 
-FPGAchannelList::FPGAchannelList(GenericProcessor* proc_, Viewport* p, FPGAcanvas* c) : chainUpdate(false), viewport(p), canvas(c)
-{
-    proc = (SourceNode*)proc_;
-    channelComponents.clear();
-
-    numberingSchemeLabel = new Label("Numbering scheme:","Numbering scheme:");
-    numberingSchemeLabel->setEditable(false);
-    numberingSchemeLabel->setBounds(10,10,150, 25);
-    numberingSchemeLabel->setColour(Label::textColourId,juce::Colours::white);
-    addAndMakeVisible(numberingSchemeLabel);
-
-    numberingScheme = new ComboBox("numberingScheme");
-    numberingScheme->addItem("Continuous",1);
-    numberingScheme->addItem("Per Stream",2);
-    numberingScheme->setBounds(160,10,100,25);
-    numberingScheme->addListener(this);
-    numberingScheme->setSelectedId(1, dontSendNotification);
-    addAndMakeVisible(numberingScheme);
-
-    impedanceButton = new UtilityButton("Measure Impedance", Font("Default", 13, Font::plain));
-    impedanceButton->setRadius(3);
-    impedanceButton->setBounds(280,10,140,25);
-    impedanceButton->addListener(this);
-    addAndMakeVisible(impedanceButton);
-
-    RHD2000Editor* e = static_cast<RHD2000Editor*>(proc->getEditor());
-    saveImpedanceButton = new ToggleButton("Save impedance measurements");
-    saveImpedanceButton->setBounds(430,10,110,25);
-    saveImpedanceButton->setToggleState(e->getSaveImpedance(),dontSendNotification);
-    saveImpedanceButton->addListener(this);
-    addAndMakeVisible(saveImpedanceButton);
-
-    autoMeasureButton = new ToggleButton("Measure impedance at acquisition start");
-    autoMeasureButton->setBounds(550,10,150,25);
-    autoMeasureButton->setToggleState(e->getAutoMeasureImpedance(),dontSendNotification);
-    autoMeasureButton->addListener(this);
-    addAndMakeVisible(autoMeasureButton);
-
-    gains.clear();
-    gains.add(0.01);
-    gains.add(0.1);
-    gains.add(1);
-    gains.add(2);
-    gains.add(5);
-    gains.add(10);
-    gains.add(20);
-    gains.add(50);
-    gains.add(100);
-    gains.add(500);
-    gains.add(1000);
-
-
-    update();
-}
-
-FPGAchannelList::~FPGAchannelList()
-{
-
-}
-
-void FPGAchannelList::paint(Graphics& g)
-{
-}
-
-void FPGAchannelList::buttonClicked(Button* btn)
-{
-    RHD2000Editor* p = (RHD2000Editor*)proc->getEditor();
-    if (btn == impedanceButton)
-    {
-        p->measureImpedance();
-    }
-    else if (btn == saveImpedanceButton)
-    {
-        p->setSaveImpedance(btn->getToggleState());
-    }
-    else if (btn == autoMeasureButton)
-    {
-        p->setAutoMeasureImpedance(btn->getToggleState());
-    }
-}
-
-void FPGAchannelList::update()
-{
-   // const int columnWidth = 330;
-    const int columnWidth = 250;
-    // Query processor for number of channels, types, gains, etc... and update the UI
-    channelComponents.clear();
-    staticLabels.clear();
-
-    RHD2000Thread* thread = (RHD2000Thread*)proc->getThread();
-    DataChannel::DataChannelTypes type;
-
-    // find out which streams are active.
-    bool hsActive[MAX_NUM_HEADSTAGES+1];
-    int numActiveHeadstages = 0;
-    int hsColumn[MAX_NUM_HEADSTAGES + 1];
-    int numChannelsPerHeadstage[MAX_NUM_HEADSTAGES + 1];
-    chainUpdate = false;
-
-    for (int k = 0; k<MAX_NUM_HEADSTAGES; k++)
-    {
-        if (thread->isHeadstageEnabled(k))
-        {
-            numChannelsPerHeadstage[k] = thread->getActiveChannelsInHeadstage(k);
-            hsActive[k] = true;
-            hsColumn[k] = numActiveHeadstages*columnWidth;
-            numActiveHeadstages++;
-        }
-        else
-        {
-            numChannelsPerHeadstage[k] = 0;
-            hsActive[k] = false;
-            hsColumn[k] = 0;
-        }
-    }
-
-    if (thread->getNumDataOutputs(DataChannel::ADC_CHANNEL,0) > 0)
-    {
-        numChannelsPerHeadstage[MAX_NUM_HEADSTAGES] = thread->getNumDataOutputs(DataChannel::ADC_CHANNEL, 0);
-        hsActive[MAX_NUM_HEADSTAGES] = true;
-        hsColumn[MAX_NUM_HEADSTAGES] = numActiveHeadstages*columnWidth;
-        numActiveHeadstages++;
-    }
-    else
-    {
-        numChannelsPerHeadstage[MAX_NUM_HEADSTAGES] = 0;
-        hsActive[MAX_NUM_HEADSTAGES] = false;
-        hsColumn[MAX_NUM_HEADSTAGES] = 0;
-    }
-
-    StringArray streamNames;
-    streamNames.add("Port A1");
-    streamNames.add("Port A2");
-    streamNames.add("Port B1");
-    streamNames.add("Port B2");
-    streamNames.add("Port C1");
-    streamNames.add("Port C2");
-    streamNames.add("Port D1");
-    streamNames.add("Port D2");
-    streamNames.add("ADC");
-
-    for (int k = 0; k < MAX_NUM_HEADSTAGES + 1; k++)
-    {
-        if (hsActive[k])
-        {
-            Label* lbl = new Label(streamNames[k],streamNames[k]);
-            lbl->setEditable(false);
-            lbl->setBounds(10+hsColumn[k],40,columnWidth, 25);
-            lbl->setJustificationType(juce::Justification::centred);
-            lbl->setColour(Label::textColourId,juce::Colours::white);
-            staticLabels.add(lbl);
-            addAndMakeVisible(lbl);
-
-        }
-
-    }
-
-    for (int k = 0; k < MAX_NUM_HEADSTAGES + 1; k++) // +1 is for the ADC "headstage"
-    {
-        if (hsActive[k])
-        {
-            int nchans = numChannelsPerHeadstage[k];
-            if (k < MAX_NUM_HEADSTAGES && thread->isAuxEnabled())
-                nchans += 3;
-            for (int ch = 0; ch < nchans; ch++)
-            {
-                int channelGainIndex = 1;
-                int realChan = thread->getChannelFromHeadstage(k, ch);
-                float ch_gain = proc->getDataChannel(realChan)->getBitVolts() / proc->getBitVolts(proc->getDataChannel(realChan));
-                for (int j = 0; j < gains.size(); j++)
-                {
-                    if (fabs(gains[j] - ch_gain) < 1e-3)
-                    {
-                        channelGainIndex = j;
-                        break;
-                    }
-                }
-                if (k < MAX_NUM_HEADSTAGES)
-                    type = ch < numChannelsPerHeadstage[k] ? DataChannel::HEADSTAGE_CHANNEL : DataChannel::AUX_CHANNEL;
-                else
-                    type = DataChannel::ADC_CHANNEL;
-
-                FPGAchannelComponent* comp = new FPGAchannelComponent(this, realChan, channelGainIndex + 1, thread->getChannelName(realChan), gains, type);
-                comp->setBounds(10 + hsColumn[k], 70 + ch * 22, columnWidth, 22);
-                comp->setUserDefinedData(k);
-                addAndMakeVisible(comp);
-                channelComponents.add(comp);
-            }
-        }
-    }
-
-
-    StringArray ttlNames;
-    proc->getEventChannelNames(ttlNames);
-    // add buttons for TTL channels
-    for (int k=0; k<ttlNames.size(); k++)
-    {
-        FPGAchannelComponent* comp = new FPGAchannelComponent(this,k, -1, ttlNames[k],gains,DataChannel::INVALID); //let's treat invalid as an event channel
-        comp->setBounds(10+numActiveHeadstages*columnWidth,70+k*22,columnWidth,22);
-        comp->setUserDefinedData(k);
-        addAndMakeVisible(comp);
-        channelComponents.add(comp);
-    }
-
-    Label* lbl = new Label("TTL Events", "TTL Events");
-    lbl->setEditable(false);
-    lbl->setBounds(numActiveHeadstages*columnWidth, 40, columnWidth, 25);
-    lbl->setJustificationType(juce::Justification::centred);
-    lbl->setColour(Label::textColourId, juce::Colours::white);
-    staticLabels.add(lbl);
-    addAndMakeVisible(lbl);
-
-    chainUpdate = true;
-}
-
-void FPGAchannelList::disableAll()
-{
-    for (int k=0; k<channelComponents.size(); k++)
-    {
-        channelComponents[k]->disableEdit();
-    }
-    impedanceButton->setEnabled(false);
-    saveImpedanceButton->setEnabled(false);
-    autoMeasureButton->setEnabled(false);
-    numberingScheme->setEnabled(false);
-}
-
-void FPGAchannelList::enableAll()
-{
-    for (int k=0; k<channelComponents.size(); k++)
-    {
-        channelComponents[k]->enableEdit();
-    }
-    impedanceButton->setEnabled(true);
-    saveImpedanceButton->setEnabled(true);
-    autoMeasureButton->setEnabled(true);
-    numberingScheme->setEnabled(true);
-}
-
-void FPGAchannelList::setNewGain(int channel, float gain)
-{
-    RHD2000Thread* thread = (RHD2000Thread*)proc->getThread();
-    thread->modifyChannelGain(channel, gain);
-    if (chainUpdate)
-        proc->requestChainUpdate();
-}
-
-void FPGAchannelList::setNewName(int channel, String newName)
-{
-    RHD2000Thread* thread = (RHD2000Thread*)proc->getThread();
-    thread->modifyChannelName(channel, newName);
-    if (chainUpdate)
-        proc->requestChainUpdate();
-}
-
-void FPGAchannelList::updateButtons()
-{
-}
-
-int FPGAchannelList::getNumChannels()
-{
-    return 0;
-}
-
-void FPGAchannelList::comboBoxChanged(ComboBox* b)
-{
-    if (b == numberingScheme)
-    {
-        SourceNode* p = (SourceNode*)proc;
-        RHD2000Thread* thread = (RHD2000Thread*)p->getThread();
-        int scheme = numberingScheme->getSelectedId();
-        thread->setDefaultNamingScheme(scheme);
-        update();
-        p->requestChainUpdate();
-    }
-}
-
-void FPGAchannelList::updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase)
-{
-    int i = 0;
-    for (int k = 0; k < streams.size(); k++)
-    {
-        if (i >= channelComponents.size())
-            break; //little safety
-
-        if (channelComponents[i]->type != DataChannel::HEADSTAGE_CHANNEL)
-        {
-            k--;
-        }
-        else
-        {
-            channelComponents[i]->setImpedanceValues(magnitude[k], phase[k]);
-        }
-        i++;
-    }
-
-}
-
-
-/****************************************************/
-FPGAchannelComponent::FPGAchannelComponent(FPGAchannelList* cl, int ch, int gainIndex_, String N, Array<float> gains_, DataChannel::DataChannelTypes type_) :
-type(type_), gains(gains_), channelList(cl), channel(ch), name(N), gainIndex(gainIndex_)
-{
-    Font f = Font("Small Text", 13, Font::plain);
-
-    staticLabel = new Label("Channel","Channel");
-    staticLabel->setFont(f);
-    staticLabel->setEditable(false);
-    addAndMakeVisible(staticLabel);
-
-    editName = new Label(name,name);
-    editName->setFont(f);
-    editName->setEditable(true);
-    editName->setColour(Label::backgroundColourId,juce::Colours::lightgrey);
-    editName->addListener(this);
-    addAndMakeVisible(editName);
-
-    if (type == DataChannel::HEADSTAGE_CHANNEL)
-    {
-        impedance = new Label("Impedance","? Ohm");
-        impedance->setFont(Font("Default", 13, Font::plain));
-        impedance->setEditable(false);
-        addAndMakeVisible(impedance);
-    }
-    else if (type == DataChannel::ADC_CHANNEL)
-    {
-        impedance = nullptr;
-        rangeComboBox = new ComboBox("ADC Ranges");
-        rangeComboBox->addItem("-5V - +5V",1);
-        rangeComboBox->addItem("0V - +5V",2);
-        SourceNode* proc = channelList->proc;
-        RHD2000Thread* thread = static_cast<RHD2000Thread*>(proc->getThread());
-        rangeComboBox->setSelectedId(thread->getAdcRange(proc->getDataChannel(channel)->getSourceTypeIndex()) + 1, dontSendNotification);
-        rangeComboBox->addListener(this);
-        addAndMakeVisible(rangeComboBox);
-    }
-    else
-    {
-        impedance = nullptr;
-        rangeComboBox = nullptr;
-    }
-}
-FPGAchannelComponent::~FPGAchannelComponent()
-{
-
-}
-
-void FPGAchannelComponent::setImpedanceValues(float mag, float phase)
-{
-    if (impedance != nullptr)
-    {
-        if (mag > 10000)
-            impedance->setText(String(mag/1e6,2)+" MOhm, "+String((int)phase) + " deg",juce::NotificationType::dontSendNotification);
-        else if (mag > 1000)
-            impedance->setText(String(mag/1e3,0)+" kOhm, "+String((int)phase) + " deg" ,juce::NotificationType::dontSendNotification);
-        else
-            impedance->setText(String(mag,0)+" Ohm, "+String((int)phase) + " deg" ,juce::NotificationType::dontSendNotification);
-    }
-    else
-    {
-
-    }
-}
-
-void FPGAchannelComponent::comboBoxChanged(ComboBox* comboBox)
-{
-    if (comboBox == rangeComboBox)
-    {
-        SourceNode* proc = channelList->proc;
-        RHD2000Thread* thread = static_cast<RHD2000Thread*>(proc->getThread());
-        thread->setAdcRange(proc->getDataChannel(channel)->getSourceTypeIndex(), comboBox->getSelectedId() - 1);
-    }
-}
-void FPGAchannelComponent::labelTextChanged(Label* lbl)
-{
-    // channel name change
-    String newName = lbl->getText();
-    channelList->setNewName(channel, newName);
-}
-
-void FPGAchannelComponent::disableEdit()
-{
-    editName->setEnabled(false);
-}
-
-void FPGAchannelComponent::enableEdit()
-{
-    editName->setEnabled(true);
-}
-
-void FPGAchannelComponent::buttonClicked(Button* btn)
-{
-}
-
-void FPGAchannelComponent::setUserDefinedData(int d)
-{
-}
-
-int FPGAchannelComponent::getUserDefinedData()
-{
-    return 0;
-}
-
-void FPGAchannelComponent::resized()
-{
-    editName->setBounds(0,0,90,20);
-    if (rangeComboBox != nullptr)
-    {
-        rangeComboBox->setBounds(100,0,80,20);
-    }
-    if (impedance != nullptr)
-    {
-       // impedance->setBounds(180,0,130,20);
-        impedance->setBounds(100, 0, 130, 20);
-    }
-
-}
-
-
-
-/**********************************************/
-
-FPGAcanvas::FPGAcanvas(GenericProcessor* n)
-{
-    processor = (SourceNode*)n;
-    channelsViewport = new Viewport();
-    channelList = new FPGAchannelList(processor, channelsViewport, this);
-    channelsViewport->setViewedComponent(channelList, false);
-    channelsViewport->setScrollBarsShown(true, true);
-    addAndMakeVisible(channelsViewport);
-
-    resized();
-    update();
-}
-
-FPGAcanvas::~FPGAcanvas()
-{
-}
-
-void FPGAcanvas::setParameter(int x, float f)
-{
-
-}
-
-void FPGAcanvas::setParameter(int a, int b, int c, float d)
-{
-}
-
-void FPGAcanvas::paint(Graphics& g)
-{
-    g.fillAll(Colours::grey);
-
-}
-
-void FPGAcanvas::refresh()
-{
-    repaint();
-}
-
-void FPGAcanvas::refreshState()
-{
-    resized();
-}
-
-
-void FPGAcanvas::beginAnimation()
-{
-}
-
-void FPGAcanvas::endAnimation()
-{
-}
-
-void FPGAcanvas::update()
-{
-    // create channel buttons (name, gain, recording, impedance, ... ?)
-    channelList->update();
-    if (static_cast<RHD2000Thread*>(processor->getThread())->isAcquisitionActive())
-    {
-        channelList->disableAll();
-    }
-}
-
-void FPGAcanvas::resized()
-{
-    //int screenWidth = getWidth();
-    //int screenHeight = getHeight();
-
-    int scrollBarThickness = channelsViewport->getScrollBarThickness();
-    int numChannels = 35; // max channels per stream? (32+3)*2
-
-    channelsViewport->setBounds(0,0,getWidth(),getHeight());
-    channelList->setBounds(0,0,getWidth()-scrollBarThickness, 200+22*numChannels);
-}
-
-void FPGAcanvas::buttonClicked(Button* button)
-{
-}
-
-void FPGAcanvas::updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase)
-{
-    channelList->updateImpedance(streams, channels,  magnitude, phase);
-}
-
-/***********************************************************************/
-
-RHD2000Editor::RHD2000Editor(GenericProcessor* parentNode,
-                             RHD2000Thread* board_,
-                             bool useDefaultParameterEditors
-                            )
-    : VisualizerEditor(parentNode, useDefaultParameterEditors), board(board_)
+DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
+                             DeviceThread* board_)
+    : VisualizerEditor(parentNode), board(board_)
 {
     canvas = nullptr;
     desiredWidth = 340;
     tabText = "FPGA";
     measureWhenRecording = false;
     saveImpedances = false;
-
-    impedanceData = new ImpedanceData();
-    impedanceData->valid = false;
 
     // add headstage-specific controls (currently just a toggle button)
     for (int i = 0; i < 4; i++)
@@ -584,6 +76,7 @@ RHD2000Editor::RHD2000Editor(GenericProcessor* parentNode,
     addAndMakeVisible(bandwidthInterface);
     bandwidthInterface->setBounds(80, 55, 80, 50);
 
+    // add AUX channel enable/disable button
     auxButton = new UtilityButton("AUX", Font("Small Text", 13, Font::plain));
     auxButton->setRadius(3.0f);
     auxButton->setBounds(80, 108, 32, 18);
@@ -592,6 +85,7 @@ RHD2000Editor::RHD2000Editor(GenericProcessor* parentNode,
     auxButton->setTooltip("Toggle AUX channels (3 per headstage)");
     addAndMakeVisible(auxButton);
 
+    // add ADC channel enable/disable button
     adcButton = new UtilityButton("ADC", Font("Small Text", 13, Font::plain));
     adcButton->setRadius(3.0f);
     adcButton->setBounds(80+32+1, 108, 32, 18);
@@ -600,6 +94,7 @@ RHD2000Editor::RHD2000Editor(GenericProcessor* parentNode,
     adcButton->setTooltip("Toggle 8 external HDMI ADC channels");
     addAndMakeVisible(adcButton);
 
+    // add audio output config interface
     audioLabel = new Label("audio label", "Audio out");
     audioLabel->setBounds(170, 20, 75, 15);
     audioLabel->setFont(Font("Small Text", 10, Font::plain));
@@ -709,80 +204,36 @@ RHD2000Editor::RHD2000Editor(GenericProcessor* parentNode,
 
 }
 
-RHD2000Editor::~RHD2000Editor()
+
+void DeviceEditor::measureImpedance()
 {
 
+    board->runImpedanceTest();
 }
 
-void RHD2000Editor::scanPorts()
+void DeviceEditor::saveImpedance(File& file)
 {
-    rescanButton->triggerClick();
+   
+    board->saveImpedances(file);
 }
 
-void RHD2000Editor::measureImpedance()
+void DeviceEditor::handleAsyncUpdate()
 {
-    impedanceData->valid = false;
-    board->runImpedanceTest(impedanceData);
-}
-
-void RHD2000Editor::handleAsyncUpdate()
-{
-    if (!impedanceData->valid)
+    /*if (!impedanceData->valid)
         return;
+
     if (canvas == nullptr)
         VisualizerEditor::canvas = createNewCanvas();
+
     // update components...
-    canvas->updateImpedance(impedanceData->streams, impedanceData->channels, impedanceData->magnitudes, impedanceData->phases);
-    if (saveImpedances)
-    {
-        CoreServices::RecordNode::createNewrecordingDir();
-
-        String path(CoreServices::RecordNode::getRecordingPath().getFullPathName()
-                    + File::separatorString + "impedance_measurement.xml");
-        std::cout << "Saving impedance measurements in " << path << "\n";
-        File file(path);
-
-        if (!file.getParentDirectory().exists())
-            file.getParentDirectory().createDirectory();
-
-        XmlDocument doc(file);
-        ScopedPointer<XmlElement> xml = new XmlElement("CHANNEL_IMPEDANCES");
-        for (int i = 0; i < impedanceData->channels.size(); i++)
-        {
-            XmlElement* chan = new XmlElement("CHANNEL");
-            chan->setAttribute("name", board->getChannelName(i));
-            chan->setAttribute("stream", impedanceData->streams[i]);
-            chan->setAttribute("channel_number", impedanceData->channels[i]);
-            chan->setAttribute("magnitude", impedanceData->magnitudes[i]);
-            chan->setAttribute("phase", impedanceData->phases[i]);
-            xml->addChildElement(chan);
-        }
-        xml->writeToFile(file,String::empty);
-    }
+    canvas->updateImpedance(impedanceData->streams, 
+                            impedanceData->channels, 
+                            impedanceData->magnitudes, 
+                            impedanceData->phases);*/
 
 }
 
-void RHD2000Editor::setSaveImpedance(bool en)
-{
-    saveImpedances = en;
-}
-
-void RHD2000Editor::setAutoMeasureImpedance(bool en)
-{
-    measureWhenRecording = en;
-}
-
-bool RHD2000Editor::getSaveImpedance()
-{
-    return saveImpedances;
-}
-
-bool RHD2000Editor::getAutoMeasureImpedance()
-{
-    return measureWhenRecording;
-}
-
-void RHD2000Editor::comboBoxChanged(ComboBox* comboBox)
+void DeviceEditor::comboBoxChanged(ComboBox* comboBox)
 {
     if (comboBox == ttlSettleCombo)
     {
@@ -812,7 +263,7 @@ void RHD2000Editor::comboBoxChanged(ComboBox* comboBox)
 }
 
 
-void RHD2000Editor::buttonEvent(Button* button)
+void DeviceEditor::buttonClicked(Button* button)
 {
     if (button == rescanButton && !acquisitionIsActive)
     {
@@ -826,11 +277,11 @@ void RHD2000Editor::buttonEvent(Button* button)
     }
     else if (button == electrodeButtons[0])
     {
-        channelSelector->setRadioStatus(true);
+        //channelSelector->setRadioStatus(true);
     }
     else if (button == electrodeButtons[1])
     {
-        channelSelector->setRadioStatus(true);
+        //channelSelector->setRadioStatus(true);
     }
     else if (button == auxButton && !acquisitionIsActive)
     {
@@ -858,16 +309,10 @@ void RHD2000Editor::buttonEvent(Button* button)
     {
         board->enableBoardLeds(button->getToggleState());
     }
-    /*
-    else
-    {
-        VisualizerEditor::buttonEvent(button);
-    }
-    */
 
 }
 
-void RHD2000Editor::channelChanged (int channel, bool /*newState*/)
+/*void DeviceEditor::channelChanged (int channel, bool newState)
 {
     // Audio output is tied to DAC channels 0 and 1
     for (int i = 0; i < 2; i++)
@@ -879,28 +324,20 @@ void RHD2000Editor::channelChanged (int channel, bool /*newState*/)
             board->setDACchannel (i, channel - 1); // HW channels are zero-based
         }
     }
-}
+}*/
 
-void RHD2000Editor::startAcquisition()
+void DeviceEditor::startAcquisition()
 {
-    if (measureWhenRecording)
-        measureImpedance();
-
-    channelSelector->startAcquisition();
-
     rescanButton->setEnabledState(false);
     auxButton->setEnabledState(false);
     adcButton->setEnabledState(false);
     dspoffsetButton-> setEnabledState(false);
+
     acquisitionIsActive = true;
-    if (canvas != nullptr)
-        canvas->channelList->disableAll();
 }
 
-void RHD2000Editor::stopAcquisition()
+void DeviceEditor::stopAcquisition()
 {
-
-    channelSelector->stopAcquisition();
 
     rescanButton->setEnabledState(true);
     auxButton->setEnabledState(true);
@@ -908,11 +345,9 @@ void RHD2000Editor::stopAcquisition()
     dspoffsetButton-> setEnabledState(true);
 
     acquisitionIsActive = false;
-    if (canvas != nullptr)
-        canvas->channelList->enableAll();
 }
 
-void RHD2000Editor::saveCustomParameters(XmlElement* xml)
+void DeviceEditor::saveCustomParameters(XmlElement* xml)
 {
     xml->setAttribute("SampleRate", sampleRateInterface->getSelectedId());
     xml->setAttribute("SampleRateString", sampleRateInterface->getText());
@@ -940,7 +375,7 @@ void RHD2000Editor::saveCustomParameters(XmlElement* xml)
     }
 }
 
-void RHD2000Editor::loadCustomParameters(XmlElement* xml)
+void DeviceEditor::loadCustomParameters(XmlElement* xml)
 {
 
     sampleRateInterface->setSelectedId(xml->getIntAttribute("SampleRate"));
@@ -962,6 +397,7 @@ void RHD2000Editor::loadCustomParameters(XmlElement* xml)
     measureWhenRecording = xml->getBoolAttribute("auto_measure_impedances");
     ledButton->setToggleState(xml->getBoolAttribute("LEDs", true),sendNotification);
     clockInterface->setClockDivideRatio(xml->getIntAttribute("ClockDivideRatio"));
+
     forEachXmlChildElementWithTagName(*xml, adc, "ADCRANGE")
     {
         int channel = adc->getIntAttribute("Channel", -1);
@@ -972,19 +408,19 @@ void RHD2000Editor::loadCustomParameters(XmlElement* xml)
 }
 
 
-Visualizer* RHD2000Editor::createNewCanvas()
+Visualizer* DeviceEditor::createNewCanvas()
 {
     GenericProcessor* processor = (GenericProcessor*) getProcessor();
-    canvas= new FPGAcanvas(processor);
-    //ActionListener* listener = (ActionListener*) canvas;
-    //getUIComponent()->registerAnimatedComponent(listener);
+
+    canvas = new ChannelCanvas(board, this);
+    
     return canvas;
 }
 
 // Bandwidth Options --------------------------------------------------------------------
 
-BandwidthInterface::BandwidthInterface(RHD2000Thread* board_,
-                                       RHD2000Editor* editor_) :
+BandwidthInterface::BandwidthInterface(DeviceThread* board_,
+                                       DeviceEditor* editor_) :
     board(board_), editor(editor_)
 {
     name = "Bandwidth";
@@ -995,7 +431,7 @@ BandwidthInterface::BandwidthInterface(RHD2000Thread* board_,
     actualUpperBandwidth = 7500.0f;
     actualLowerBandwidth = 1.0f;
 
-    upperBandwidthSelection = new Label("UpperBandwidth", lastHighCutString); // this is currently set in RHD2000Thread, the cleaner way would be to set it here again
+    upperBandwidthSelection = new Label("UpperBandwidth", lastHighCutString); // this is currently set in DeviceThread, the cleaner way would be to set it here again
     upperBandwidthSelection->setEditable(true, false, false);
     upperBandwidthSelection->addListener(this);
     upperBandwidthSelection->setBounds(30, 25, 60, 20);
@@ -1119,8 +555,8 @@ void BandwidthInterface::paint(Graphics& g)
 
 // Sample rate Options --------------------------------------------------------------------
 
-SampleRateInterface::SampleRateInterface(RHD2000Thread* board_,
-                                         RHD2000Editor* editor_) :
+SampleRateInterface::SampleRateInterface(DeviceThread* board_,
+                                         DeviceEditor* editor_) :
     board(board_), editor(editor_)
 {
 
@@ -1203,8 +639,8 @@ void SampleRateInterface::paint(Graphics& g)
 
 // Headstage Options --------------------------------------------------------------------
 
-HeadstageOptionsInterface::HeadstageOptionsInterface(RHD2000Thread* board_,
-                                                     RHD2000Editor* editor_,
+HeadstageOptionsInterface::HeadstageOptionsInterface(DeviceThread* board_,
+                                                     DeviceEditor* editor_,
                                                      int hsNum) :
     isEnabled(false), board(board_), editor(editor_)
 {
@@ -1356,8 +792,8 @@ void HeadstageOptionsInterface::paint(Graphics& g)
 
 // (Direct OpalKelly) Audio Options --------------------------------------------------------------------
 
-AudioInterface::AudioInterface(RHD2000Thread* board_,
-                               RHD2000Editor* editor_) :
+AudioInterface::AudioInterface(DeviceThread* board_,
+                               DeviceEditor* editor_) :
     board(board_), editor(editor_)
 {
 
@@ -1367,7 +803,7 @@ AudioInterface::AudioInterface(RHD2000Thread* board_,
 
     actualNoiseSlicerLevel = 0.0f;
 
-    noiseSlicerLevelSelection = new Label("Noise Slicer", lastNoiseSlicerString); // this is currently set in RHD2000Thread, the cleaner would be to set it here again
+    noiseSlicerLevelSelection = new Label("Noise Slicer", lastNoiseSlicerString); // this is currently set in DeviceThread, the cleaner would be to set it here again
     noiseSlicerLevelSelection->setEditable(true, false, false);
     noiseSlicerLevelSelection->addListener(this);
     noiseSlicerLevelSelection->setBounds(45, 6, 35, 20);
@@ -1445,8 +881,8 @@ void AudioInterface::paint(Graphics& g)
 
 
 // Clock Divider options
-ClockDivideInterface::ClockDivideInterface(RHD2000Thread* board_,
-                                           RHD2000Editor* editor_) :
+ClockDivideInterface::ClockDivideInterface(DeviceThread* board_,
+                                           DeviceEditor* editor_) :
    name("Clock")
  , lastDivideRatioString("1")
  , board(board_)
@@ -1504,8 +940,8 @@ void ClockDivideInterface::paint(Graphics& g)
 
 // DSP Options --------------------------------------------------------------------
 
-DSPInterface::DSPInterface(RHD2000Thread* board_,
-                           RHD2000Editor* editor_) :
+DSPInterface::DSPInterface(DeviceThread* board_,
+                           DeviceEditor* editor_) :
     board(board_), editor(editor_)
 {
     name = "DSP";

@@ -39,38 +39,24 @@ namespace AcqBoardOutputNamespace {
 
     class AcqBoardOutput;
 
-    class AcqBoardOutputEditor : public GenericEditor,
-        public ComboBox::Listener
+    class AcqBoardOutputEditor : public GenericEditor
 
     {
     public:
-        AcqBoardOutputEditor(GenericProcessor* parentNode, bool useDefaultParameterEditors);
-        virtual ~AcqBoardOutputEditor();
 
-        void receivedEvent();
+        /** Constructor*/
+        AcqBoardOutputEditor(GenericProcessor* parentNode);
 
-        //ImageIcon* icon;
+        /** Destructor*/
+        ~AcqBoardOutputEditor() { }
 
-        void comboBoxChanged(ComboBox* comboBoxThatHasChanged);
-
-        AcqBoardOutput* board;
-
-        void buttonEvent(Button* button);
-
-        Array<float> durations;
-
+        /** Responds to trigger button press*/
 
     private:
 
-        // ScopedPointer<UtilityButton> triggerButton;
-        ScopedPointer<ComboBox> inputChannelSelector;
-        ScopedPointer<ComboBox> outputChannelSelector;
-        ScopedPointer<ComboBox> gateChannelSelector;
-        ScopedPointer<ComboBox> durationSelector;
+        //ScopedPointer<UtilityButton> triggerButton;
 
-        ScopedPointer<UtilityButton> triggerButton;
-
-        void timerCallback();
+        AcqBoardOutput* board;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AcqBoardOutputEditor);
 

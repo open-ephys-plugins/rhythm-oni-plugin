@@ -21,8 +21,8 @@
 */
 
 
-#ifndef __ACQUISITIONBOARD_H_2C4CBD67__
-#define __ACQUISITIONBOARD_H_2C4CBD67__
+#ifndef __RECORDCONTROLLER_H_2C4CBD67__
+#define __RECORDCONTROLLER_H_2C4CBD67__
 
 #include "DeviceThread.h"
 
@@ -30,19 +30,21 @@ namespace RhythmNode
 {
 
     /**
-        Communicates with the Open Ephys Acquisition Board
+        Communicates with the Intan RHD Recording Controller
+
+        https://intantech.com/recording_controller.html
 
         @see DataThread, SourceNode
         */
 
-    class AcquisitionBoard : public DeviceThread
+    class IntanRecordController : public DeviceThread
     {
     public:
 
-        AcquisitionBoard::AcquisitionBoard(SourceNode* sn) 
-            : DeviceThread(sn, ACQUISITION_BOARD) { }
+        IntanRecordController::IntanRecordController(SourceNode* sn) 
+            : DeviceThread(sn, RHD_RECORDING_CONTROLLER) { }
 
-        AcquisitionBoard::~AcquisitionBoard() { }
+        IntanRecordController::~IntanRecordController() { }
     };
 }
 

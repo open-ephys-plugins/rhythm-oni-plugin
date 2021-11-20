@@ -13,11 +13,27 @@ add_sources(${PLUGIN_NAME}
 	rhythm-api/rhd2000evalboard.h
 	rhythm-api/rhd2000registers.cpp
 	rhythm-api/rhd2000registers.h
-	RHD2000Thread.cpp
-	RHD2000Thread.h
-	RHD2000Editor.cpp
-	RHD2000Editor.h
-
+	UI/ChannelComponent.h
+	UI/ChannelComponent.cpp
+	UI/ChannelList.h
+	UI/ChannelList.cpp
+	UI/ChannelCanvas.h
+	UI/ChannelCanvas.cpp
+	DeviceThread.cpp
+	DeviceThread.h
+	DeviceEditor.cpp
+	DeviceEditor.h
+	IntanUSBInterface.h
+	IntanRecordController.h
+	AcquisitionBoard.h
+	AcqBoardOutput.h
+	AcqBoardOutput.cpp
+	AcqBoardOutputEditor.h
+	AcqBoardOutputEditor.cpp
+	Headstage.h
+	Headstage.cpp
+	ImpedanceMeter.h
+	ImpedanceMeter.cpp
 	)
 
 if (MSVC)

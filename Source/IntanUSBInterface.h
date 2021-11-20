@@ -24,22 +24,25 @@
 #ifndef __INTANUSB_H_2C4CBD67__
 #define __INTANUSB_H_2C4CBD67__
 
-#include "RHD2000Thread.h"
+#include "DeviceThread.h"
 
 namespace RhythmNode
 {
 
     /**
-        Communicates with the Open Ephys Acquisition Board
+        Communicates with the Intan RHD USB Interface Board
+
+        https://intantech.com/RHD_USB_interface_board.html
 
         @see DataThread, SourceNode
         */
 
-    class IntanUSBInterface : public RHD2000Thread
+    class IntanUSBInterface : public DeviceThread
     {
     public:
 
-        IntanUSBInterface::IntanUSBInterface(SourceNode* sn) : RHD2000Thread(sn, INTAN_RHD_USB) { }
+        IntanUSBInterface::IntanUSBInterface(SourceNode* sn) 
+            : DeviceThread(sn, INTAN_RHD_USB) { }
 
         IntanUSBInterface::~IntanUSBInterface() { }
     };

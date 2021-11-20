@@ -21,8 +21,8 @@
 
 */
 
-#ifndef __RHD2000EDITOR_H_2AD3C591__
-#define __RHD2000EDITOR_H_2AD3C591__
+#ifndef __DEVICEEDITOR_H_2AD3C591__
+#define __DEVICEEDITOR_H_2AD3C591__
 
 #include <VisualizerEditorHeaders.h>
 
@@ -35,155 +35,53 @@ namespace RhythmNode
 	class DSPInterface;
 	class AudioInterface;
 	class ClockDivideInterface;
-	class RHD2000Thread;
+	class DeviceThread;
+	class ChannelCanvas;
 
 	struct ImpedanceData;
 
-	/**
+	class DeviceEditor : public VisualizerEditor, 
+						 public ComboBox::Listener, 
+						 public Button::Listener,
+						 public AsyncUpdater
 
-	  User interface for the RHD2000 source module.
-
-	  @see SourceNode
-
-	  */
-	class FPGAchannelComponent;
-	class RHD2000Editor;
-	class FPGAcanvas;
-
-	class FPGAchannelList : public Component,
-		Button::Listener, ComboBox::Listener
 	{
 	public:
 
-		FPGAchannelList(GenericProcessor* proc, Viewport* p, FPGAcanvas* c);
-		~FPGAchannelList();
-		void setNewName(int channelIndex, String newName);
-		void setNewGain(int channel, float gain);
-		void disableAll();
-		void enableAll();
-		void paint(Graphics& g);
-		void buttonClicked(Button* btn);
-		void update();
-		void updateButtons();
-		int getNumChannels();
-		void comboBoxChanged(ComboBox* b);
-		void updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase);
-		SourceNode* proc;
+		/** Constructor */
+		DeviceEditor(GenericProcessor* parentNode, DeviceThread* thread);
 
-	private:
-		Array<float> gains;
-		Array<DataChannel::DataChannelTypes> types;
+		/** Destructor*/
+		~DeviceEditor() { }
 
-		bool chainUpdate;
-
-		Viewport* viewport;
-		FPGAcanvas* canvas;
-		ScopedPointer<UtilityButton> impedanceButton;
-		ScopedPointer<ToggleButton> saveImpedanceButton;
-		ScopedPointer<ToggleButton> autoMeasureButton;
-		ScopedPointer<ComboBox> numberingScheme;
-		ScopedPointer<Label> numberingSchemeLabel;
-		OwnedArray<Label> staticLabels;
-		OwnedArray<FPGAchannelComponent> channelComponents;
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FPGAchannelList);
-	};
-
-
-	class FPGAchannelComponent : public Component, Button::Listener, public ComboBox::Listener, public Label::Listener
-	{
-	public:
-		FPGAchannelComponent(FPGAchannelList* cl, int ch, int gainIndex_, String name_, Array<float> gains_, DataChannel::DataChannelTypes type_);
-		~FPGAchannelComponent();
-		Colour getDefaultColor(int ID);
-		void setImpedanceValues(float mag, float phase);
-		void disableEdit();
-		void enableEdit();
-
-
-		void setEnabledState(bool);
-		bool getEnabledState()
-		{
-			return isEnabled;
-		}
-		void buttonClicked(Button* btn);
-		void setUserDefinedData(int d);
-		int getUserDefinedData();
+		/** Respond to combo box changes (e.g. sample rate)*/
 		void comboBoxChanged(ComboBox* comboBox);
-		void labelTextChanged(Label* lbl);
 
-		void resized();
-
-		const DataChannel::DataChannelTypes type;
-	private:
-		Array<float> gains;
-		FPGAchannelList* channelList;
-		ScopedPointer<Label> staticLabel, editName, impedance;
-		ScopedPointer<ComboBox> rangeComboBox;
-		int channel;
-		String name;
-		int gainIndex;
-		int userDefinedData;
-		Font font;
-		bool isEnabled;
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FPGAchannelComponent);
-	};
-
-
-	class FPGAcanvas : public Visualizer, public Button::Listener
-	{
-	public:
-		FPGAcanvas(GenericProcessor* n);
-		~FPGAcanvas();
-
-		void paint(Graphics& g);
-
-		void refresh();
-
-		void beginAnimation();
-		void endAnimation();
-
-		void refreshState();
-		void update();
-
-		void setParameter(int, float);
-		void setParameter(int, int, int, float);
-
-		void updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase);
-
-		void resized();
+		/** Respond to button clicks*/
 		void buttonClicked(Button* button);
-		ScopedPointer<Viewport> channelsViewport;
-		SourceNode* processor;
-		ScopedPointer<FPGAchannelList> channelList;
-	};
 
-	class RHD2000Editor : public VisualizerEditor, public ComboBox::Listener, public AsyncUpdater
-
-	{
-	public:
-		RHD2000Editor(GenericProcessor* parentNode, RHD2000Thread*, bool useDefaultParameterEditors);
-		~RHD2000Editor();
-
-		void buttonEvent(Button* button);
-
-		void scanPorts();
-		void comboBoxChanged(ComboBox* comboBox);
-
+		/** Disable UI during acquisition*/
 		void startAcquisition();
+
+		/** Enable UI after acquisition is finished*/
 		void stopAcquisition();
 
-		void channelChanged(int channel, bool newState) override;
-
-		void saveCustomParameters(XmlElement* xml);
-		void loadCustomParameters(XmlElement* xml);
-		Visualizer* createNewCanvas(void);
+		/** Runs impedance test*/
 		void measureImpedance();
 
-		void setSaveImpedance(bool en);
-		void setAutoMeasureImpedance(bool en);
-		bool getSaveImpedance();
-		bool getAutoMeasureImpedance();
+		/** Saves impedance data to a file*/
+		void saveImpedance(File& file);
 
+		/** Saves custom parameters */
+		void saveCustomParameters(XmlElement* xml);
+
+		/** Loads custom parameters*/
+		void loadCustomParameters(XmlElement* xml);
+
+		/** Creates an interface with additional channel settings*/
+		Visualizer* createNewCanvas(void);
+		
+		/** Called when impedance measurement finishes*/
 		void handleAsyncUpdate();
 
 	private:
@@ -206,26 +104,25 @@ namespace RhythmNode
 		ScopedPointer<UtilityButton> dspoffsetButton;
 		ScopedPointer<ComboBox> ttlSettleCombo, dacHPFcombo;
 
-
 		ScopedPointer<Label> audioLabel, ttlSettleLabel, dacHPFlabel;
 
 		bool saveImpedances, measureWhenRecording;
 
-		RHD2000Thread* board;
-		FPGAcanvas* canvas;
+		DeviceThread* board;
+		ChannelCanvas* canvas;
 
-		ScopedPointer<ImpedanceData> impedanceData;
-
-		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(RHD2000Editor);
+		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceEditor);
 
 	};
 
 
 	class HeadstageOptionsInterface : public Component,
-		public Button::Listener
+									  public Button::Listener
 	{
 	public:
-		HeadstageOptionsInterface(RHD2000Thread*, RHD2000Editor*, int hsNum);
+
+		/** Constructor*/
+		HeadstageOptionsInterface(DeviceThread*, DeviceEditor*, int hsNum);
 		~HeadstageOptionsInterface();
 
 		void paint(Graphics& g);
@@ -242,8 +139,8 @@ namespace RhythmNode
 
 		bool isEnabled;
 
-		RHD2000Thread* board;
-		RHD2000Editor* editor;
+		DeviceThread* board;
+		DeviceEditor* editor;
 
 		ScopedPointer<UtilityButton> hsButton1;
 		ScopedPointer<UtilityButton> hsButton2;
@@ -255,7 +152,7 @@ namespace RhythmNode
 		public Label::Listener
 	{
 	public:
-		BandwidthInterface(RHD2000Thread*, RHD2000Editor*);
+		BandwidthInterface(DeviceThread*, DeviceEditor*);
 		~BandwidthInterface();
 
 		void paint(Graphics& g);
@@ -272,8 +169,8 @@ namespace RhythmNode
 
 		String lastLowCutString, lastHighCutString;
 
-		RHD2000Thread* board;
-		RHD2000Editor* editor;
+		DeviceThread* board;
+		DeviceEditor* editor;
 
 		ScopedPointer<Label> upperBandwidthSelection;
 		ScopedPointer<Label> lowerBandwidthSelection;
@@ -287,7 +184,7 @@ namespace RhythmNode
 		public Label::Listener
 	{
 	public:
-		DSPInterface(RHD2000Thread*, RHD2000Editor*);
+		DSPInterface(DeviceThread*, DeviceEditor*);
 		~DSPInterface();
 
 		void paint(Graphics& g);
@@ -300,8 +197,8 @@ namespace RhythmNode
 
 		String name;
 
-		RHD2000Thread* board;
-		RHD2000Editor* editor;
+		DeviceThread* board;
+		DeviceEditor* editor;
 
 		ScopedPointer<Label> dspOffsetSelection;
 
@@ -315,7 +212,7 @@ namespace RhythmNode
 		public ComboBox::Listener
 	{
 	public:
-		SampleRateInterface(RHD2000Thread*, RHD2000Editor*);
+		SampleRateInterface(DeviceThread*, DeviceEditor*);
 		~SampleRateInterface();
 
 		int getSelectedId();
@@ -331,8 +228,8 @@ namespace RhythmNode
 		int sampleRate;
 		String name;
 
-		RHD2000Thread* board;
-		RHD2000Editor* editor;
+		DeviceThread* board;
+		DeviceEditor* editor;
 
 		ScopedPointer<ComboBox> rateSelection;
 		StringArray sampleRateOptions;
@@ -343,7 +240,7 @@ namespace RhythmNode
 		public Label::Listener
 	{
 	public:
-		AudioInterface(RHD2000Thread*, RHD2000Editor*);
+		AudioInterface(DeviceThread*, DeviceEditor*);
 		~AudioInterface();
 
 		void paint(Graphics& g);
@@ -361,8 +258,8 @@ namespace RhythmNode
 		String lastNoiseSlicerString;
 		String lastGainString;
 
-		RHD2000Thread* board;
-		RHD2000Editor* editor;
+		DeviceThread* board;
+		DeviceEditor* editor;
 
 		ScopedPointer<Label> noiseSlicerLevelSelection;
 		//ScopedPointer<Label> gainSelection;
@@ -376,7 +273,7 @@ namespace RhythmNode
 		public Label::Listener
 	{
 	public:
-		ClockDivideInterface(RHD2000Thread*, RHD2000Editor*);
+		ClockDivideInterface(DeviceThread*, DeviceEditor*);
 
 		void paint(Graphics& g);
 		void labelTextChanged(Label* te);
@@ -389,8 +286,8 @@ namespace RhythmNode
 		String name;
 		String lastDivideRatioString;
 
-		RHD2000Thread * board;
-		RHD2000Editor * editor;
+		DeviceThread * board;
+		DeviceEditor * editor;
 
 		ScopedPointer<Label> divideRatioSelection;
 		int actualDivideRatio;
@@ -398,4 +295,4 @@ namespace RhythmNode
 	};
 
 }
-#endif  // __RHD2000EDITOR_H_2AD3C591__
+#endif  // __DEVICEEDITOR_H_2AD3C591__

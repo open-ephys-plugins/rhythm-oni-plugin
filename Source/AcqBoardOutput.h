@@ -36,59 +36,28 @@ namespace AcqBoardOutputNamespace {
 
         @see GenericProcessor
      */
-    class AcqBoardOutput : public GenericProcessor, public Timer
+    class AcqBoardOutput : public GenericProcessor
     {
     public:
-        AcqBoardOutput();
-        ~AcqBoardOutput();
 
-        enum State {
-            HIGH,
-            LOW
-        };
+        /** Constructor*/
+        AcqBoardOutput();
+
+        /** Destructor*/
+        ~AcqBoardOutput() { }
 
         /** Searches for events and triggers the Arduino output when appropriate. */
-        void process(AudioSampleBuffer& buffer) override;
-
-        /** Currently unused. Future uses may include changing the TTL trigger channel
-        or the output channel of the Arduino. */
-        void setParameter(int parameterIndex, float newValue) override;
+        void process(AudioBuffer<float>& buffer) override;
 
         /** Convenient interface for responding to incoming events. */
         void handleEvent(const EventChannel* eventInfo, const MidiMessage& event, int sampleNum) override;
 
-        /** Called immediately prior to the start of data acquisition. */
-        bool enable() override;
-
-        /** Called immediately after the end of data acquisition. */
-        bool disable() override;
-
         /** Creates the AcqBoardOutputEditor. */
         AudioProcessorEditor* createEditor() override;
 
-        void setOutputChannel(int);
-        void setInputChannel(int);
-        void setGateChannel(int);
-        void setDurationMs(float);
-        
-        void timerCallback();
-
-        int outputChannel;
-        int inputChannel;
-        int gateChannel;
-        float durationMs;
-
-        void setState(int channel, State state);
-
-        void triggerOutput();
-
     private:
 
-        StreamingSocket socket;
-
-        bool state;
-        bool acquisitionIsActive;
-        bool deviceFound;
+        bool gateIsOpen;
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AcqBoardOutput);
     };
