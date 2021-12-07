@@ -41,10 +41,9 @@ namespace RhythmNode
     {
     public:
 
-        IntanUSBInterface::IntanUSBInterface(SourceNode* sn) 
-            : DeviceThread(sn, INTAN_RHD_USB) { }
+        IntanUSBInterface(SourceNode* sn) : DeviceThread(sn, INTAN_RHD_USB) { }
 
-        IntanUSBInterface::~IntanUSBInterface() { }
+        ~IntanUSBInterface() { }
     };
 
 }
