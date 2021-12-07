@@ -347,7 +347,7 @@ void DeviceEditor::stopAcquisition()
     acquisitionIsActive = false;
 }
 
-void DeviceEditor::saveCustomParameters(XmlElement* xml)
+void DeviceEditor::saveVisualizerEditorParameters(XmlElement* xml)
 {
     xml->setAttribute("SampleRate", sampleRateInterface->getSelectedId());
     xml->setAttribute("SampleRateString", sampleRateInterface->getText());
@@ -375,7 +375,7 @@ void DeviceEditor::saveCustomParameters(XmlElement* xml)
     }
 }
 
-void DeviceEditor::loadCustomParameters(XmlElement* xml)
+void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
 {
 
     sampleRateInterface->setSelectedId(xml->getIntAttribute("SampleRate"));

@@ -73,10 +73,10 @@ namespace RhythmNode
 		void saveImpedance(File& file);
 
 		/** Saves custom parameters */
-		void saveCustomParameters(XmlElement* xml);
+		void saveVisualizerEditorParameters(XmlElement* xml) override;
 
 		/** Loads custom parameters*/
-		void loadCustomParameters(XmlElement* xml);
+		void loadVisualizerEditorParameters(XmlElement* xml) override;
 
 		/** Creates an interface with additional channel settings*/
 		Visualizer* createNewCanvas(void);
