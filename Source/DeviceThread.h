@@ -38,7 +38,6 @@
 
 #define MAX_NUM_DATA_STREAMS_USB2 8
 #define MAX_NUM_DATA_STREAMS_USB3 16
-#define MAX_NUM_HEADSTAGES 8
 
 #define CHIP_ID_RHD2132  1
 #define CHIP_ID_RHD2216  2
@@ -246,6 +245,10 @@ namespace RhythmNode
 			float portB = 0.914f;
 			float portC = 0.914f;
 			float portD = 0.914f;
+			float portE = 0.914f;
+			float portF = 0.914f;
+			float portG = 0.914f;
+			float portH = 0.914f;
 		};
 
 		/** Dsp settings*/

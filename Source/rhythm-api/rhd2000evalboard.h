@@ -88,7 +88,11 @@ public:
         PortA,
         PortB,
         PortC,
-        PortD
+        PortD,
+        PortE,
+        PortF,
+        PortG,
+        PortH
     };
 
     void uploadCommandList(const vector<int> &commandList, AuxCmdSlot auxCommandSlot, int bank);

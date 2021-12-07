@@ -32,6 +32,8 @@ namespace RhythmNode
     /**
         Communicates with the Open Ephys Acquisition Board
 
+        https://open-ephys.org/acq-board
+
         @see DataThread, SourceNode
         */
 
