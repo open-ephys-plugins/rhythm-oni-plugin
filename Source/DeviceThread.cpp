@@ -769,7 +769,7 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
         "description",
         "identifier",
 
-        evalBoard->getSampleRate()
+        static_cast<float>(evalBoard->getSampleRate())
 
     };
 

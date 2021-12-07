@@ -41,10 +41,9 @@ namespace RhythmNode
     {
     public:
 
-        AcquisitionBoard::AcquisitionBoard(SourceNode* sn) 
-            : DeviceThread(sn, ACQUISITION_BOARD) { }
+        AcquisitionBoard(SourceNode* sn) : DeviceThread(sn, ACQUISITION_BOARD) { }
 
-        AcquisitionBoard::~AcquisitionBoard() { }
+        ~AcquisitionBoard() { }
     };
 }
 
