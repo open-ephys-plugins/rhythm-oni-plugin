@@ -64,11 +64,10 @@ if(MSVC)
 	
 	install(TARGETS ${PLUGIN_NAME} RUNTIME DESTINATION ${GUI_BIN_DIR}/plugins  CONFIGURATIONS ${CMAKE_CONFIGURATION_TYPES})
 
-	set(CMAKE_PREFIX_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../libs)
 elseif(LINUX)
 	target_link_libraries(${PLUGIN_NAME} GL X11 Xext Xinerama asound dl freetype pthread rt)
 	set_property(TARGET ${PLUGIN_NAME} APPEND_STRING PROPERTY LINK_FLAGS
-		"-fvisibility=hidden -fPIC -rdynamic -Wl,-rpath,'$$ORIGIN/../shared'")
+		"-fvisibility=hidden -fPIC -rdynamic -Wl,-rpath,'$ORIGIN/../shared'")
 	target_compile_options(${PLUGIN_NAME} PRIVATE -fPIC -rdynamic)
 	target_compile_options(${PLUGIN_NAME} PRIVATE -O3) #enable optimization for linux debug
 	
@@ -79,7 +78,6 @@ elseif(APPLE)
 	"-undefined dynamic_lookup -rpath @loader_path/../../../../shared")
 
 	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/PlugIns)
-	set(CMAKE_PREFIX_PATH /opt/local)
 endif()
 
 #create filters for vs and xcode
@@ -94,12 +92,15 @@ endforeach()
 #additional libraries
 if (MSVC)
 	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/okFrontPanel.lib")
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/okFrontPanel.dll DESTINATION ${GUI_BIN_DIR}/shared CONFIGURATIONS ${CMAKE_CONFIGURATION_TYPES})
 elseif(LINUX)
 	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.so")
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.so DESTINATION ${GUI_BIN_DIR}/shared)
 elseif(APPLE)
 	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib")
 	set_source_files_properties(${DLLDIR}/libokFrontPanel.dylib PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
 	target_sources(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared)
 endif()
 
-
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/ DESTINATION ${GUI_BIN_DIR} FILES_MATCHING PATTERN "*.bit")
