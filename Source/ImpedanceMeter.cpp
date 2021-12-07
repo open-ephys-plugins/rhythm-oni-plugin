@@ -292,7 +292,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
 
     Array<int> enabledStreams;
 
-    for (stream = 0; stream < MAX_NUM_DATA_STREAMS(board->evalBoard->isUSB3()); ++stream)
+    for (stream = 0; stream < MAX_NUM_DATA_STREAMS; ++stream)
     {
         CHECK_EXIT;
 

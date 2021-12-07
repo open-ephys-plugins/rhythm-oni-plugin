@@ -249,7 +249,7 @@ void Rhd2000EvalBoard::initialize()
     }
 
     enableDataStream(0, true);        // start with only one data stream enabled
-    for (i = 1; i < MAX_NUM_DATA_STREAMS(usb3); i++) {
+    for (i = 1; i < MAX_NUM_DATA_STREAMS; i++) {
         enableDataStream(i, false);
     }
 
@@ -877,7 +877,7 @@ void Rhd2000EvalBoard::setDataSource(int stream, BoardDataSource dataSource)
     int bitShift;
     OkEndPoint endPoint;
 
-    if (stream < 0 || stream > (MAX_NUM_DATA_STREAMS(usb3) - 1)) {
+    if (stream < 0 || stream > (MAX_NUM_DATA_STREAMS - 1)) {
         cerr << "Error in Rhd2000EvalBoard::setDataSource: stream out of range." << endl;
         return;
     }
@@ -956,7 +956,7 @@ void Rhd2000EvalBoard::setDataSource(int stream, BoardDataSource dataSource)
 // Enable or disable one of the eight available USB data streams (0-7).
 void Rhd2000EvalBoard::enableDataStream(int stream, bool enabled)
 {
-    if (stream < 0 || stream > (MAX_NUM_DATA_STREAMS(usb3) - 1)) {
+    if (stream < 0 || stream > (MAX_NUM_DATA_STREAMS - 1)) {
         cerr << "Error in Rhd2000EvalBoard::setDataSource: stream out of range." << endl;
         return;
     }
@@ -1119,7 +1119,7 @@ void Rhd2000EvalBoard::selectDacDataStream(int dacChannel, int stream)
         return;
     }
 
-    if (stream < 0 || stream > MAX_NUM_DATA_STREAMS(usb3)+1) {
+    if (stream < 0 || stream > MAX_NUM_DATA_STREAMS +1) {
         cerr << "Error in Rhd2000EvalBoard::selectDacDataStream: stream out of range." << endl;
         return;
     }

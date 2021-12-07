@@ -36,9 +36,6 @@
 #include "rhythm-api/rhd2000datablock.h"
 #include "rhythm-api/okFrontPanelDLL.h"
 
-#define MAX_NUM_DATA_STREAMS_USB2 8
-#define MAX_NUM_DATA_STREAMS_USB3 16
-
 #define CHIP_ID_RHD2132  1
 #define CHIP_ID_RHD2216  2
 #define CHIP_ID_RHD2164  4
@@ -47,7 +44,9 @@
 #define REGISTER_59_MISO_B  58
 #define RHD2132_16CH_OFFSET 8
 
-#define MAX_NUM_CHANNELS MAX_NUM_DATA_STREAMS_USB3*35
+#define MAX_NUM_CHANNELS MAX_NUM_DATA_STREAMS * 35
+
+#define MAX_NUM_HEADSTAGES MAX_NUM_DATA_STREAMS / 2
 
 namespace RhythmNode
 {
@@ -232,9 +231,11 @@ namespace RhythmNode
 
 		/** Data buffers*/
 		float thisSample[MAX_NUM_CHANNELS];
+
 		float auxBuffer[MAX_NUM_CHANNELS]; // aux inputs are only sampled every 4th sample, so use this to buffer the 
 										   // samples so they can be handles just like the regular neural channels later
-		float auxSamples[MAX_NUM_DATA_STREAMS_USB3][3];
+
+		float auxSamples[MAX_NUM_DATA_STREAMS][3];
 
 		unsigned int blockSize;
 

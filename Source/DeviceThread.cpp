@@ -611,13 +611,13 @@ void DeviceThread::scanPorts()
 
     for (hs = 0; hs < headstages.size(); ++hs)
     {
-        if ((tmpChipId[hs] > 0) && (enabledStreams.size() < MAX_NUM_DATA_STREAMS(evalBoard->isUSB3())))
+        if ((tmpChipId[hs] > 0) && (enabledStreams.size() < MAX_NUM_DATA_STREAMS))
         {
             chipId.set(chipIdx++,tmpChipId[hs]);
             //std::cout << "Enabling headstage on stream " << stream << std::endl;
             if (tmpChipId[hs] == CHIP_ID_RHD2164) //RHD2164
             {
-                if (enabledStreams.size() < MAX_NUM_DATA_STREAMS(evalBoard->isUSB3()) - 1)
+                if (enabledStreams.size() < MAX_NUM_DATA_STREAMS - 1)
                 {
                     enableHeadstage(hs,true,2,32);
                     chipId.set(chipIdx++,CHIP_ID_RHD2164_B);
@@ -1150,7 +1150,7 @@ bool DeviceThread::enableHeadstage(int hsNum, bool enabled, int nStr, int strCha
 
 void DeviceThread::updateBoardStreams()
 {
-    for (int i=0; i <  MAX_NUM_DATA_STREAMS(evalBoard->isUSB3()); i++)
+    for (int i = 0; i < MAX_NUM_DATA_STREAMS; i++)
     {
         if (i < enabledStreams.size())
         {

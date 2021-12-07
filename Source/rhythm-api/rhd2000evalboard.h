@@ -26,9 +26,10 @@
 #define RHYTHM_BOARD_ID_USB3 600
 #define MAX_NUM_DATA_STREAMS_USB2 8
 #define MAX_NUM_DATA_STREAMS_USB3 16
+#define MAX_NUM_DATA_STREAMS 32
 #define FIFO_CAPACITY_WORDS 67108864
 
-#define MAX_NUM_DATA_STREAMS(u3) ( u3 ? MAX_NUM_DATA_STREAMS_USB3 : MAX_NUM_DATA_STREAMS_USB2 )
+//#define MAX_NUM_DATA_STREAMS(u3) ( u3 ? MAX_NUM_DATA_STREAMS_USB3 : MAX_NUM_DATA_STREAMS_USB2 )
 
 #define USB3_BLOCK_SIZE 1024
 #define DDR_BLOCK_SIZE 32
@@ -182,7 +183,7 @@ private:
     OpalKellyLegacy::okCFrontPanel *dev;
     AmplifierSampleRate sampleRate;
     int numDataStreams; // total number of data streams currently enabled
-    int dataStreamEnabled[MAX_NUM_DATA_STREAMS_USB3]; // 0 (disabled) or 1 (enabled), set for maximum stream number
+    int dataStreamEnabled[MAX_NUM_DATA_STREAMS]; // 0 (disabled) or 1 (enabled), set for maximum stream number
     vector<int> cableDelay;
 
     // Buffer for reading bytes from USB interface
