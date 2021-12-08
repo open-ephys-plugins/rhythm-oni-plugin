@@ -42,7 +42,8 @@ namespace RhythmNode
 
 	class DeviceEditor : public VisualizerEditor, 
 						 public ComboBox::Listener, 
-						 public Button::Listener
+						 public Button::Listener,
+					     public PopupChannelSelector::Listener
 
 	{
 	public:
@@ -83,6 +84,9 @@ namespace RhythmNode
 		/** Creates an interface with additional channel settings*/
 		Visualizer* createNewCanvas(void);
 
+		/** Called by PopupChannelSelector */
+		void channelStateChanged(Array<int> newChannels) override;
+
 	private:
 
 		OwnedArray<HeadstageOptionsInterface> headstageOptionsInterfaces;
@@ -109,6 +113,13 @@ namespace RhythmNode
 
 		DeviceThread* board;
 		ChannelCanvas* canvas;
+
+		enum AudioChannel {
+			LEFT = 0,
+			RIGHT = 1
+		};
+
+		AudioChannel activeAudioChannel;
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceEditor);
 
@@ -247,8 +258,6 @@ namespace RhythmNode
 
 		void setNoiseSlicerLevel(int value);
 		int getNoiseSlicerLevel();
-		//void setGain(double value);
-		//double getGain();
 
 	private:
 
@@ -261,10 +270,8 @@ namespace RhythmNode
 		DeviceEditor* editor;
 
 		ScopedPointer<Label> noiseSlicerLevelSelection;
-		//ScopedPointer<Label> gainSelection;
 
 		int actualNoiseSlicerLevel;
-		//double actualGain;
 
 	};
 

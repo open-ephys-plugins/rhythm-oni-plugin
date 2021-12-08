@@ -108,8 +108,8 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
 
         button->setBounds(174+i*30, 35, 30, 15);
         button->setChannelNum(-1);
+        button->setClickingTogglesState (false);
         button->setToggleState(false, dontSendNotification);
-        button->setRadioGroupId(999);
 
         addAndMakeVisible(button);
         button->addListener(this);
@@ -258,6 +258,33 @@ void DeviceEditor::comboBoxChanged(ComboBox* comboBox)
     }
 }
 
+void DeviceEditor::channelStateChanged(Array<int> newChannels)
+{
+
+    int selectedChannel = -1;
+
+    if (newChannels.size() > 0)
+    {
+        selectedChannel = newChannels[0];   
+    }
+        
+    
+    board->setDACchannel(int(activeAudioChannel), selectedChannel);
+
+    if (selectedChannel > -1)
+    {
+        electrodeButtons[int(activeAudioChannel)]->setToggleState(true, dontSendNotification);
+        electrodeButtons[int(activeAudioChannel)]->setChannelNum(selectedChannel+1);
+    }
+    else
+    {
+        electrodeButtons[int(activeAudioChannel)]->setChannelNum(selectedChannel);
+        electrodeButtons[int(activeAudioChannel)]->setToggleState(false, dontSendNotification);
+    }
+        
+
+}
+
 
 void DeviceEditor::buttonClicked(Button* button)
 {
@@ -271,13 +298,32 @@ void DeviceEditor::buttonClicked(Button* button)
         }
         CoreServices::updateSignalChain(this);
     }
-    else if (button == electrodeButtons[0])
+    else if (button == electrodeButtons[0] || button == electrodeButtons[1])
     {
-        //channelSelector->setRadioStatus(true);
-    }
-    else if (button == electrodeButtons[1])
-    {
-        //channelSelector->setRadioStatus(true);
+        std::vector<bool> channelStates;
+
+        if (button == electrodeButtons[0])
+            activeAudioChannel = LEFT;
+        else
+            activeAudioChannel = RIGHT;
+
+        for (int i = 0; i < board->getNumDataOutputs(ContinuousChannel::ELECTRODE); i++)
+        {
+            if (electrodeButtons[int(activeAudioChannel)]->getChannelNum() -1 == i)
+                channelStates.push_back(true);
+            else
+                channelStates.push_back(false);
+        }
+
+        auto* channelSelector = new PopupChannelSelector(this, channelStates);
+
+        channelSelector->setChannelButtonColour(Colour(0, 174, 239));
+        channelSelector->setMaximumSelectableChannels(1);
+
+        CallOutBox& myBox
+            = CallOutBox::launchAsynchronously(std::unique_ptr<Component>(channelSelector),
+                button->getScreenBounds(),
+                nullptr);
     }
     else if (button == auxButton && !acquisitionIsActive)
     {
@@ -307,20 +353,6 @@ void DeviceEditor::buttonClicked(Button* button)
     }
 
 }
-
-/*void DeviceEditor::channelChanged (int channel, bool newState)
-{
-    // Audio output is tied to DAC channels 0 and 1
-    for (int i = 0; i < 2; i++)
-    {
-        if (electrodeButtons[i]->getToggleState())
-        {
-            electrodeButtons[i]->setChannelNum (channel);
-            electrodeButtons[i]->repaint();
-            board->setDACchannel (i, channel - 1); // HW channels are zero-based
-        }
-    }
-}*/
 
 void DeviceEditor::startAcquisition()
 {
@@ -382,10 +414,7 @@ void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
     bandwidthInterface->setUpperBandwidth(xml->getDoubleAttribute("HighCut"));
     auxButton->setToggleState(xml->getBoolAttribute("AUXsOn"), sendNotification);
     adcButton->setToggleState(xml->getBoolAttribute("ADCsOn"), sendNotification);
-    //electrodeButtons[0]->setChannelNum(xml->getIntAttribute("AudioOutputL"));
-    //board->assignAudioOut(0, xml->getIntAttribute("AudioOutputL"));
-    //electrodeButtons[1]->setChannelNum(xml->getIntAttribute("AudioOutputR"));
-    //board->assignAudioOut(1, xml->getIntAttribute("AudioOutputR"));
+    
     audioInterface->setNoiseSlicerLevel(xml->getIntAttribute("NoiseSlicer"));
     ttlSettleCombo->setSelectedId(xml->getIntAttribute("TTLFastSettle"));
     dacTTLButton->setToggleState(xml->getBoolAttribute("DAC_TTL"), sendNotification);
@@ -396,6 +425,19 @@ void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
     measureWhenRecording = xml->getBoolAttribute("auto_measure_impedances");
     ledButton->setToggleState(xml->getBoolAttribute("LEDs", true),sendNotification);
     clockInterface->setClockDivideRatio(xml->getIntAttribute("ClockDivideRatio"));
+
+    int AudioOutputL = xml->getIntAttribute("AudioOutputL", -1);
+    int AudioOutputR = xml->getIntAttribute("AudioOutputR", -1);
+
+    electrodeButtons[0]->setChannelNum(AudioOutputL);
+    board->setDACchannel(0, AudioOutputL);
+    if (AudioOutputL > -1)
+        electrodeButtons[0]->setToggleState(true, dontSendNotification);
+
+    electrodeButtons[1]->setChannelNum(AudioOutputR);
+    board->setDACchannel(1, AudioOutputR);
+    if (AudioOutputR > -1)
+        electrodeButtons[1]->setToggleState(true, dontSendNotification);
 
     forEachXmlChildElementWithTagName(*xml, adc, "ADCRANGE")
     {

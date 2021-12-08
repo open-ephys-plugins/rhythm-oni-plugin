@@ -56,7 +56,7 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
     chipRegisters(30000.0f),
     deviceFound(false),
     isTransmitting(false),
-    dacOutputShouldChange(false)
+    updateSettingsDuringAcquisition(false)
 {
 
     boardType = boardType_;
@@ -107,7 +107,7 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
         initializeBoard();
 
         if (evalBoard->isUSB3())
-            std::cout << "USB3 board mode enabled" << std::endl;
+            LOGD("USB3 board mode enabled");
 
         // automatically find connected headstages
         scanPorts(); // things would appear to run more smoothly if this were done after the editor has been created
@@ -130,7 +130,7 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
 
 DeviceThread::~DeviceThread()
 {
-    std::cout << "RHD2000 interface destroyed." << std::endl;
+    LOGD( "RHD2000 interface destroyed." );
 
     if (deviceFound && boardType == ACQUISITION_BOARD)
     {
@@ -229,7 +229,7 @@ void DeviceThread::setDACthreshold(int dacOutput, float threshold)
 {
     dacThresholds[dacOutput]= threshold;
     dacChannelsToUpdate[dacOutput] = true;
-    dacOutputShouldChange = true;
+    updateSettingsDuringAcquisition = true;
 
     //evalBoard->setDacThresholdVoltage(dacOutput,threshold);
 }
@@ -253,7 +253,7 @@ void DeviceThread::setDACchannel(int dacOutput, int channel)
             }
         }
         dacChannelsToUpdate[dacOutput] = true;
-        dacOutputShouldChange = true;
+        updateSettingsDuringAcquisition = true;
     }
 }
 
@@ -340,7 +340,7 @@ bool DeviceThread::uploadBitfile(String bitfilename)
 
     if (!evalBoard->uploadFpgaBitfile(bitfilename.toStdString()))
     {
-        //LOGD("Couldn't upload bitfile from ", bitfilename);
+        LOGD("Couldn't upload bitfile from ", bitfilename);
 
         bool response = AlertWindow::showOkCancelBox(AlertWindow::NoIcon,
                                                      "FPGA bitfile not found.",
@@ -364,7 +364,6 @@ bool DeviceThread::uploadBitfile(String bitfilename)
             }
             else
             {
-                //sendActionMessage("No configuration selected.");
                 deviceFound = false;
             }
 
@@ -410,7 +409,7 @@ void DeviceThread::initializeBoard()
     }
 
     // Initialize the board
-    //LOGD("Initializing RHD2000 board.");
+    LOGD("Initializing RHD2000 board.");
     evalBoard->initialize();
     // This applies the following settings:
     //  - sample rate to 30 kHz
@@ -565,7 +564,7 @@ void DeviceThread::scanPorts()
     for (int i = 0; i < 8; i++)
         evalBoard->enableDataStream(i, true);
 
-//    LOGD("Number of enabled data streams: ", evalBoard->getNumEnabledDataStreams());
+    LOGD("Number of enabled data streams: ", evalBoard->getNumEnabledDataStreams());
 
     evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortA,
         Rhd2000EvalBoard::AuxCmd3, 0);
@@ -608,7 +607,7 @@ void DeviceThread::scanPorts()
     // Run SPI command sequence at all 16 possible FPGA MISO delay settings
     // to find optimum delay for each SPI interface cable.
 
-    std::cout << "Checking for connected amplifier chips..." << std::endl;
+    LOGD( "Checking for connected amplifier chips..." );
 
     for (delay = 0; delay < 16; delay++)
     {
@@ -640,14 +639,13 @@ void DeviceThread::scanPorts()
         // Record delay settings that yield good communication with the chip.
         for (hs = 0; hs < headstages.size(); ++hs)
         {
-            // std::cout << "Stream number " << stream << ", delay = " << delay << std::endl;
 
             id = getDeviceId(dataBlock, hs, register59Value);
 
             if (id == CHIP_ID_RHD2132 || id == CHIP_ID_RHD2216 ||
                 (id == CHIP_ID_RHD2164 && register59Value == REGISTER_59_MISO_A))
             {
-                //  std::cout << "Device ID found: " << id << std::endl;
+                LOGD( "Device ID found: ", id );
 
                 sumGoodDelays.set(hs, sumGoodDelays[hs] + 1);
 
@@ -693,13 +691,13 @@ void DeviceThread::scanPorts()
     // Now, disable data streams where we did not find chips present.
     int chipIdx = 0;
 
-    for (hs = 0; hs < headstages.size(); ++hs)
+    for (int hs = 0; hs < headstages.size(); ++hs)
     {
         if ((tmpChipId[hs] > 0) && (enabledStreams.size() < MAX_NUM_DATA_STREAMS))
         {
             chipId.set(chipIdx++,tmpChipId[hs]);
 
-            //LOGD("Enabling headstage ", hs);
+            LOGD("Enabling headstage ", hs);
 
             if (tmpChipId[hs] == CHIP_ID_RHD2164) //RHD2164
             {
@@ -726,7 +724,7 @@ void DeviceThread::scanPorts()
 #endif
     updateBoardStreams();
 
-    std::cout << "Number of enabled data streams: " << evalBoard->getNumEnabledDataStreams() << std::endl;
+    LOGD( "Number of enabled data streams: ", evalBoard->getNumEnabledDataStreams() );
 
     // Set cable delay settings that yield good communication with each
     // RHD2000 chip.
@@ -951,7 +949,7 @@ void DeviceThread::impedanceMeasurementFinished()
 
     if (impedances.valid)
     {
-        std::cout << "Updating headstage impedance values" << std::endl;
+        LOGD( "Updating headstage impedance values" );
 
         for (auto hs : headstages)
         {
@@ -1182,7 +1180,7 @@ void DeviceThread::setTTLoutputMode(bool state)
 {
     settings.ttlMode = state;
 
-    dacOutputShouldChange = true;
+    updateSettingsDuringAcquisition = true;
 }
 
 void DeviceThread::setDAChpf(float cutoff, bool enabled)
@@ -1191,7 +1189,7 @@ void DeviceThread::setDAChpf(float cutoff, bool enabled)
     
     settings.desiredDAChpfState = enabled;
 
-    dacOutputShouldChange = true;
+    updateSettingsDuringAcquisition = true;
 }
 
 void DeviceThread::setFastTTLSettle(bool state, int channel)
@@ -1200,7 +1198,7 @@ void DeviceThread::setFastTTLSettle(bool state, int channel)
     
     settings.fastSettleTTLChannel = channel;
 
-    dacOutputShouldChange = true;
+    updateSettingsDuringAcquisition = true;
 }
 
 int DeviceThread::setNoiseSlicerLevel(int level)
@@ -1315,7 +1313,7 @@ int DeviceThread::getChannelsInHeadstage (int hsNum) const
             dacChannels[1] = dataChannel;
         }
 
-        dacOutputShouldChange = true; // set a flag and take care of setting wires
+        updateSettingsDuringAcquisition = true; // set a flag and take care of setting wires
         // during the updateBuffer() method
         // to avoid problems
     }
@@ -1449,7 +1447,7 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary)
     // Select per-channel amplifier sampling rate.
     evalBoard->setSampleRate(sampleRate);
 
-    std::cout << "Sample rate set to " << evalBoard->getSampleRate() << std::endl;
+    LOGD( "Sample rate set to ", evalBoard->getSampleRate() );
 
     // Now that we have set our sampling rate, we can set the MISO sampling delay
     // which is dependent on the sample rate.
@@ -1624,7 +1622,7 @@ bool DeviceThread::startAcquisition()
     impedanceThread->waitSafely();
     dataBlock = new Rhd2000DataBlock(evalBoard->getNumEnabledDataStreams(), evalBoard->isUSB3());
 
-    std::cout << "Expecting " << getNumChannels() << " channels." << std::endl;
+    LOGD( "Expecting ", getNumChannels() ," channels." );
 
     if (boardType == ACQUISITION_BOARD)
     {
@@ -1685,7 +1683,7 @@ bool DeviceThread::stopAcquisition()
     {
         evalBoard->setContinuousRunMode(false);
         evalBoard->setMaxTimeStep(0);
-        std::cout << "Flushing FIFO." << std::endl;
+        LOGD( "Flushing FIFO." );
         evalBoard->flush();
     }
 
@@ -1693,14 +1691,14 @@ bool DeviceThread::stopAcquisition()
 
     if (deviceFound && boardType == ACQUISITION_BOARD)
     {
-        std::cout << "Number of 16-bit words in FIFO: " << evalBoard->numWordsInFifo() << std::endl;
+        LOGD( "Number of 16-bit words in FIFO: ", evalBoard->numWordsInFifo() );
 
         int ledArray[8] = {1, 0, 0, 0, 0, 0, 0, 0};
         evalBoard->setLedDisplay(ledArray);
     }
 
     isTransmitting = false;
-    dacOutputShouldChange = false;
+    updateSettingsDuringAcquisition = false;
 
     // remove timers
     digitalOutputTimers.clear();
@@ -1719,7 +1717,7 @@ bool DeviceThread::updateBuffer()
     //cout << "Number of 16-bit words in FIFO: " << evalBoard->numWordsInFifo() << endl;
     //cout << "Block size: " << blockSize << endl;
 
-    //std::cout << "Current number of words: " <<  evalBoard->numWordsInFifo() << " for " << blockSize << std::endl;
+    //LOGD( "Current number of words: " <<  evalBoard->numWordsInFifo() << " for " << blockSize );
     if (evalBoard->isUSB3() || evalBoard->numWordsInFifo() >= blockSize)
     {
         bool return_code;
@@ -1739,7 +1737,7 @@ bool DeviceThread::updateBuffer()
 
             if (!Rhd2000DataBlock::checkUsbHeader(bufferPtr, index))
             {
-                std::cerr << "Error in Rhd2000EvalBoard::readDataBlock: Incorrect header." << std::endl;
+                LOGE( "Error in Rhd2000EvalBoard::readDataBlock: Incorrect header." );
                 break;
             }
 
@@ -1832,9 +1830,9 @@ bool DeviceThread::updateBuffer()
     }
 
 
-    if (dacOutputShouldChange)
+    if (updateSettingsDuringAcquisition)
     {
-        std::cout << "DAC" << std::endl;
+        LOGD( "DAC" );
         for (int k=0; k<8; k++)
         {
             if (dacChannelsToUpdate[k])
@@ -1863,7 +1861,7 @@ bool DeviceThread::updateBuffer()
         evalBoard->enableBoardLeds(settings.ledsEnabled);
         evalBoard->setClockDivider(settings.clockDivideFactor);
 
-        dacOutputShouldChange = false;
+        updateSettingsDuringAcquisition = false;
     }
 
     if (!digitalOutputCommands.empty())
@@ -1879,10 +1877,15 @@ bool DeviceThread::updateBuffer()
 
         evalBoard->setTtlOut(TTL_OUTPUT_STATE);
 
-        std::cout << "TTL OUTPUT STATE: ";
-        for (int i = 0; i < 8; i++)
-            std::cout << TTL_OUTPUT_STATE[i] << " ";
-        std::cout << std::endl;
+        LOGB("TTL OUTPUT STATE: ",
+            TTL_OUTPUT_STATE[0],
+            TTL_OUTPUT_STATE[1],
+            TTL_OUTPUT_STATE[2],
+            TTL_OUTPUT_STATE[3],
+            TTL_OUTPUT_STATE[4],
+            TTL_OUTPUT_STATE[5],
+            TTL_OUTPUT_STATE[6],
+            TTL_OUTPUT_STATE[7]);
 
     }
 
@@ -2006,7 +2009,7 @@ void DeviceThread::enableBoardLeds(bool enable)
     settings.ledsEnabled = enable;
 
     if (isAcquisitionActive())
-        dacOutputShouldChange = true;
+        updateSettingsDuringAcquisition = true;
     else
         evalBoard->enableBoardLeds(enable);
 }
@@ -2031,7 +2034,7 @@ int DeviceThread::setClockDivider(int divide_ratio)
         settings.clockDivideFactor = static_cast<uint16>(divide_ratio/2);
 
     if (isAcquisitionActive())
-        dacOutputShouldChange = true;
+        updateSettingsDuringAcquisition = true;
     else
         evalBoard->setClockDivider(settings.clockDivideFactor);
 

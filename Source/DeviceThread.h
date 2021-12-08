@@ -242,12 +242,9 @@ namespace RhythmNode
 
 	private:
 
-		
 		std::queue<DigitalOutputCommand> digitalOutputCommands;
 
 		OwnedArray<DigitalOutputTimer> digitalOutputTimers;
-
-
 
 		bool enableHeadstage(int hsNum, bool enabled, int nStr = 1, int strChans = 32);
 		void updateBoardStreams();
@@ -269,8 +266,8 @@ namespace RhythmNode
 		/** True if data is streaming*/
 		bool isTransmitting;
 
-		/** True if change in DAC output is needed*/
-		bool dacOutputShouldChange;
+		/** True if change in settings is needed during acquisition*/
+		bool updateSettingsDuringAcquisition;
 
 		/** Data buffers*/
 		float thisSample[MAX_NUM_CHANNELS];
