@@ -56,8 +56,7 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
     chipRegisters(30000.0f),
     deviceFound(false),
     isTransmitting(false),
-    dacOutputShouldChange(false),
-    ttlOutputShouldChange(false)
+    dacOutputShouldChange(false)
 {
 
     boardType = boardType_;
@@ -129,27 +128,13 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
     }
 }
 
-std::unique_ptr<GenericEditor> DeviceThread::createEditor(SourceNode* sn)
-{
-
-    std::unique_ptr<DeviceEditor> editor = std::make_unique<DeviceEditor>(sn, this);
-
-    return editor;
-}
-
-
-void DeviceThread::timerCallback()
-{
-    stopTimer();
-}
-
 DeviceThread::~DeviceThread()
 {
     std::cout << "RHD2000 interface destroyed." << std::endl;
 
     if (deviceFound && boardType == ACQUISITION_BOARD)
     {
-        int ledArray[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        int ledArray[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
         evalBoard->setLedDisplay(ledArray);
     }
 
@@ -162,6 +147,83 @@ DeviceThread::~DeviceThread()
     delete[] dacChannelsToUpdate;
 }
 
+
+std::unique_ptr<GenericEditor> DeviceThread::createEditor(SourceNode* sn)
+{
+
+    std::unique_ptr<DeviceEditor> editor = std::make_unique<DeviceEditor>(sn, this);
+
+    return editor;
+}
+
+void DeviceThread::handleMessage(String msg)
+{
+    StringArray parts = StringArray::fromTokens(msg, " ", "");
+
+    if (parts[0].equalsIgnoreCase("ACQBOARD"))
+    {
+        if (parts.size() > 1)
+        {
+            String command = parts[1];
+
+            if (command.equalsIgnoreCase("TRIGGER"))
+            {
+                if (parts.size() == 4)
+                {
+                    int ttlLine = parts[2].getIntValue() - 1;
+
+                    if (ttlLine < 0 || ttlLine > 7)
+                        return;
+
+                    int eventDurationMs = parts[3].getIntValue();
+
+                    if (eventDurationMs < 10 || eventDurationMs > 5000)
+                        return;
+
+                    DigitalOutputCommand command;
+                    command.ttlLine = ttlLine;
+                    command.state = true;
+
+                    digitalOutputCommands.push(command);
+
+                    DigitalOutputTimer* timer = new DigitalOutputTimer(this, ttlLine, eventDurationMs);
+
+                    digitalOutputTimers.add(timer);
+
+                }
+            }
+        }
+    }
+
+}
+
+
+void DeviceThread::addDigitalOutputCommand(DigitalOutputTimer* timerToDelete, int ttlLine, bool state)
+{
+    DigitalOutputCommand command;
+    command.ttlLine = ttlLine;
+    command.state = state;
+
+    digitalOutputCommands.push(command);
+
+    digitalOutputTimers.removeObject(timerToDelete);
+}
+
+DeviceThread::DigitalOutputTimer::DigitalOutputTimer(DeviceThread* board_, int ttlLine_, int eventDurationMs)
+    : board(board_)
+{
+
+    tllOutputLine = ttlLine_;
+
+    startTimer(eventDurationMs);
+}
+
+void DeviceThread::DigitalOutputTimer::timerCallback()
+{
+    stopTimer();
+
+    board->addDigitalOutputCommand(this, tllOutputLine, false);
+}
 
 void DeviceThread::setDACthreshold(int dacOutput, float threshold)
 {
@@ -932,7 +994,7 @@ void DeviceThread::saveImpedances(File& file)
 
         //juce::XmlElement::TextFormat textFormat;
 
-        //xml->writeTo(file, textFormat);
+        //xml->writeTo(file);
     }
    
 }
@@ -1569,7 +1631,13 @@ bool DeviceThread::startAcquisition()
         int ledArray[8] = {1, 1, 0, 0, 0, 0, 0, 0};
         evalBoard->setLedDisplay(ledArray);
     }
-    
+
+    // reset TTL output state
+    for (int k = 0; k < 16; k++)
+    {
+        TTL_OUTPUT_STATE[k] = 0;
+    }
+
     //LOGD( "Number of 16-bit words in FIFO: ", evalBoard->numWordsInFifo());
     //LOGD("Is eval board running: ", evalBoard->isRunning());
 
@@ -1633,7 +1701,13 @@ bool DeviceThread::stopAcquisition()
 
     isTransmitting = false;
     dacOutputShouldChange = false;
-    ttlOutputShouldChange = false;
+
+    // remove timers
+    digitalOutputTimers.clear();
+
+    // remove commands
+    while (!digitalOutputCommands.empty())
+        digitalOutputCommands.pop();
 
     return true;
 }
@@ -1792,17 +1866,24 @@ bool DeviceThread::updateBuffer()
         dacOutputShouldChange = false;
     }
 
-    if (ttlOutputShouldChange)
+    if (!digitalOutputCommands.empty())
     {
-        int ttlOutArray[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-        ttlOutArray[TTL_OUTPUT_INDEX] = TTL_OUTPUT_STATE;
+        while (!digitalOutputCommands.empty())
+        {
+            DigitalOutputCommand command = digitalOutputCommands.front();
+            TTL_OUTPUT_STATE[command.ttlLine] = command.state;
+            digitalOutputCommands.pop();
 
-        evalBoard->setTtlOut(ttlOutArray);
+        }
 
-        std::cout << "Setting channel " << TTL_OUTPUT_INDEX << " to " << TTL_OUTPUT_STATE << std::endl;
+        evalBoard->setTtlOut(TTL_OUTPUT_STATE);
 
-        ttlOutputShouldChange = false;
+        std::cout << "TTL OUTPUT STATE: ";
+        for (int i = 0; i < 8; i++)
+            std::cout << TTL_OUTPUT_STATE[i] << " ";
+        std::cout << std::endl;
+
     }
 
     return true;
@@ -1974,16 +2055,7 @@ void DeviceThread::runImpedanceTest()
     
     impedanceThread->runThread();
 
-    std::cout << "Thread finished." << std::endl;
 }
 
-
-void DeviceThread::setTtlOutputState(int channel, bool state)
-{
-    TTL_OUTPUT_INDEX = channel;
-    TTL_OUTPUT_STATE = state;
-
-    ttlOutputShouldChange = true;
-}
 
 

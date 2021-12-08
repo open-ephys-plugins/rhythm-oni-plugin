@@ -81,8 +81,7 @@ namespace RhythmNode
 
 		@see DataThread, SourceNode
 	*/
-	class DeviceThread : public DataThread, 
-					      public Timer
+	class DeviceThread : public DataThread
 	{
 		friend class ImpedanceMeter;
 
@@ -122,7 +121,8 @@ namespace RhythmNode
 		/** Sets the method for determining channel names*/
 		void setNamingScheme(ChannelNamingScheme scheme);
 
-		void timerCallback() override;
+		/** Allow the thread to respond to messages sent by other plugins */
+		void handleMessage(String msg);
 
 		void setNumChannels(int hsNum, int nChannels);
 
@@ -184,9 +184,7 @@ namespace RhythmNode
 		void enableAuxs(bool);
 		void enableAdcs(bool);
 
-		void setTtlOutputState(int channel, bool state);
-		int TTL_OUTPUT_INDEX;
-		bool TTL_OUTPUT_STATE;
+		int TTL_OUTPUT_STATE[16];
 
 		bool isAuxEnabled();
 		bool isAcquisitionActive() const;
@@ -214,7 +212,43 @@ namespace RhythmNode
 
 		static BoardType boardType;
 
+		class DigitalOutputTimer : public Timer
+		{
+		public:
+
+			/** Constructor */
+			DigitalOutputTimer(DeviceThread*, int tllLine, int eventDurationMs);
+
+			/** Destructor*/
+			~DigitalOutputTimer() { }
+
+			/** Sends signal to turn off event channel*/
+			void timerCallback();
+
+		private:
+			DeviceThread* board;
+
+			int tllOutputLine;
+		};
+
+		struct DigitalOutputCommand {
+			int ttlLine;
+			bool state;
+		};
+
+		void addDigitalOutputCommand(DigitalOutputTimer* timerToDelete,
+			int ttlLine,
+			bool state);
+
 	private:
+
+		
+		std::queue<DigitalOutputCommand> digitalOutputCommands;
+
+		OwnedArray<DigitalOutputTimer> digitalOutputTimers;
+
+
+
 		bool enableHeadstage(int hsNum, bool enabled, int nStr = 1, int strChans = 32);
 		void updateBoardStreams();
 		void setCableLength(int hsNum, float length);
@@ -237,9 +271,6 @@ namespace RhythmNode
 
 		/** True if change in DAC output is needed*/
 		bool dacOutputShouldChange;
-
-		/** True if change in TTL output is needed*/
-		bool ttlOutputShouldChange;
 
 		/** Data buffers*/
 		float thisSample[MAX_NUM_CHANNELS];
