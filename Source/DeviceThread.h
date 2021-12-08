@@ -61,6 +61,12 @@ namespace RhythmNode
 		RHD_RECORDING_CONTROLLER
 	};
 
+	enum ChannelNamingScheme
+	{
+		GLOBAL_INDEX = 1,
+		STREAM_INDEX = 2
+	};
+
 	struct Impedances
 	{
 		Array<int> streams;
@@ -109,6 +115,12 @@ namespace RhythmNode
 
 		/** Updates the measured impedance values for each channel*/
 		void impedanceMeasurementFinished();
+
+		/** Returns an array of connected headstages*/
+		Array<const Headstage*> getConnectedHeadstages();
+
+		/** Sets the method for determining channel names*/
+		void setNamingScheme(ChannelNamingScheme scheme);
 
 		void timerCallback() override;
 
@@ -183,7 +195,7 @@ namespace RhythmNode
 
 		void setDACchannel(int dacOutput, int channel);
 		void setDACthreshold(int dacOutput, float threshold);
-		void setDefaultNamingScheme(int scheme);
+		
 
 		int getHeadstageChannels(int hsNum) const;
 		int getActiveChannelsInHeadstage(int hsNum) const;
@@ -318,8 +330,10 @@ namespace RhythmNode
 		Array<int> numChannelsPerDataStream;
 
 		/** ADC info */
-		std::array<atomic_short, 8> adcRangeSettings;
+		std::array<std::atomic_short, 8> adcRangeSettings;
 		Array<float> adcBitVolts;
+		StringArray adcChannelNames;
+		StringArray ttlLineNames;
 
 		/** Impedance data*/
 		Impedances impedances;

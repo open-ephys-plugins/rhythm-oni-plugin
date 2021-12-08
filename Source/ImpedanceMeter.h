@@ -128,7 +128,7 @@ namespace RhythmNode
             objects, loads this data into this SignalProcessor object, scaling the raw
 			data to generate waveforms with units of volts or microvolts.*/
 		int loadAmplifierData(
-			queue<Rhd2000DataBlock>& dataQueue,
+			std::queue<Rhd2000DataBlock>& dataQueue,
 			int numBlocks, 
 			int numDataStreams);
 

@@ -53,7 +53,7 @@ namespace RhythmNode
 		void buttonClicked(Button* btn);
 		void update();
 		void updateButtons();
-		int getNumChannels();
+		int getMaxChannels() { return maxChannels; }
 		void comboBoxChanged(ComboBox* b);
 		void updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase);
 
@@ -69,13 +69,15 @@ namespace RhythmNode
 		DeviceEditor* editor;
 
 		ScopedPointer<UtilityButton> impedanceButton;
-		ScopedPointer<ToggleButton> saveImpedanceButton;
-		ScopedPointer<ToggleButton> autoMeasureButton;
+		ScopedPointer<UtilityButton> saveImpedanceButton;
+
 		ScopedPointer<ComboBox> numberingScheme;
 		ScopedPointer<Label> numberingSchemeLabel;
 
 		OwnedArray<Label> staticLabels;
 		OwnedArray<ChannelComponent> channelComponents;
+
+		int maxChannels;
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ChannelList);
 	};

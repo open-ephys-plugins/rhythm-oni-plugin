@@ -45,8 +45,10 @@ ChannelCanvas::ChannelCanvas(DeviceThread* board_,
     channelViewport->setScrollBarsShown(true, true);
     addAndMakeVisible(channelViewport.get());
 
-    resized();
     update();
+
+    resized();
+    
 }
 
 
@@ -68,13 +70,8 @@ void ChannelCanvas::refreshState()
 
 void ChannelCanvas::update()
 {
-    // create channel buttons (name, gain, recording, impedance, ... ?)
-    channelList->update();
 
-    //if (static_cast<DeviceThread*>(processor->getThread())->isAcquisitionActive())
-    //{
-    //   channelList->disableAll();
-    //}
+    channelList->update();
 }
 
 void ChannelCanvas::beginAnimation()
@@ -91,10 +88,10 @@ void ChannelCanvas::resized()
 {
 
     int scrollBarThickness = channelViewport->getScrollBarThickness();
-    int numChannels = 35; // max channels per stream? (32+3)*2
 
-    channelViewport->setBounds(0,0,getWidth(), getHeight());
-    channelList->setBounds(0, 0, getWidth()-scrollBarThickness, 200+22*numChannels);
+    channelViewport->setBounds(0, 0, getWidth(), getHeight());
+
+    channelList->setBounds(0, 0, getWidth()-scrollBarThickness, 200 + 22* channelList->getMaxChannels());
 }
 
 

@@ -42,8 +42,7 @@ namespace RhythmNode
 
 	class DeviceEditor : public VisualizerEditor, 
 						 public ComboBox::Listener, 
-						 public Button::Listener,
-						 public AsyncUpdater
+						 public Button::Listener
 
 	{
 	public:
@@ -72,6 +71,9 @@ namespace RhythmNode
 		/** Saves impedance data to a file*/
 		void saveImpedance(File& file);
 
+		/** Updates channel canvas*/
+		void updateSettings();
+
 		/** Saves custom parameters */
 		void saveVisualizerEditorParameters(XmlElement* xml) override;
 
@@ -80,9 +82,6 @@ namespace RhythmNode
 
 		/** Creates an interface with additional channel settings*/
 		Visualizer* createNewCanvas(void);
-		
-		/** Called when impedance measurement finishes*/
-		void handleAsyncUpdate();
 
 	private:
 

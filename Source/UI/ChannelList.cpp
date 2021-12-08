@@ -27,47 +27,43 @@
 
 #include "../DeviceThread.h"
 #include "../DeviceEditor.h"
+#include "../Headstage.h"
 
 using namespace RhythmNode;
 
 
 ChannelList::ChannelList(DeviceThread* board_, DeviceEditor* editor_) :
-    board(board_), editor(editor_)
+    board(board_), editor(editor_), maxChannels(0)
 {
 
     channelComponents.clear();
 
-    numberingSchemeLabel = new Label("Numbering scheme:","Numbering scheme:");
+    numberingSchemeLabel = new Label("Channel Names:","Channel Names:");
     numberingSchemeLabel->setEditable(false);
     numberingSchemeLabel->setBounds(10,10,150, 25);
     numberingSchemeLabel->setColour(Label::textColourId,juce::Colours::white);
     addAndMakeVisible(numberingSchemeLabel);
 
     numberingScheme = new ComboBox("numberingScheme");
-    numberingScheme->addItem("Continuous",1);
-    numberingScheme->addItem("Per Stream",2);
-    numberingScheme->setBounds(160,10,100,25);
+    numberingScheme->addItem("Global",1);
+    numberingScheme->addItem("Stream-Based",2);
+    numberingScheme->setBounds(110,10,140,25);
     numberingScheme->addListener(this);
     numberingScheme->setSelectedId(1, dontSendNotification);
     addAndMakeVisible(numberingScheme);
 
-    impedanceButton = new UtilityButton("Measure Impedance", Font("Default", 13, Font::plain));
+    impedanceButton = new UtilityButton("Measure Impedances", Font("Default", 13, Font::plain));
     impedanceButton->setRadius(3);
     impedanceButton->setBounds(280,10,140,25);
     impedanceButton->addListener(this);
     addAndMakeVisible(impedanceButton);
 
-    saveImpedanceButton = new ToggleButton("Save impedance measurements");
-    saveImpedanceButton->setBounds(430,10,110,25);
-    saveImpedanceButton->setToggleState(false, dontSendNotification);
+    saveImpedanceButton = new UtilityButton("Save Impedances", Font("Default", 13, Font::plain));
+    saveImpedanceButton->setRadius(3);
+    saveImpedanceButton->setBounds(430,10,150,25);
     saveImpedanceButton->addListener(this);
+    saveImpedanceButton->setEnabled(false);
     addAndMakeVisible(saveImpedanceButton);
-
-    autoMeasureButton = new ToggleButton("Measure impedance at acquisition start");
-    autoMeasureButton->setBounds(550,10,150,25);
-    autoMeasureButton->setToggleState(false,dontSendNotification);
-    autoMeasureButton->addListener(this);
-    addAndMakeVisible(autoMeasureButton);
 
     gains.clear();
     gains.add(0.01);
@@ -95,147 +91,76 @@ void ChannelList::buttonClicked(Button* btn)
     }
     else if (btn == saveImpedanceButton)
     {
-        //editor->setSaveImpedance(btn->getToggleState());
-    }
-    else if (btn == autoMeasureButton)
-    {
-        //editor->setAutoMeasureImpedance(btn->getToggleState());
+
+        FileChooser chooseOutputFile("Please select the location to save...",
+            File(),
+            ".xml");
+
+        if (chooseOutputFile.browseForFileToSave(true))
+        {
+            // Use the selected file
+            editor->saveImpedance(chooseOutputFile.getResult());
+        }
     }
 }
 
 void ChannelList::update()
 {
-    /*// const int columnWidth = 330;
-    const int columnWidth = 250;
-    // Query processor for number of channels, types, gains, etc... and update the UI
-    channelComponents.clear();
+
     staticLabels.clear();
+    channelComponents.clear();
 
-    RHD2000Thread* thread = (RHD2000Thread*)proc->getThread();
-    DataChannel::DataChannelTypes type;
+    const int columnWidth = 250;
 
-    // find out which streams are active.
-    bool hsActive[MAX_NUM_HEADSTAGES+1];
-    int numActiveHeadstages = 0;
-    int hsColumn[MAX_NUM_HEADSTAGES + 1];
-    int numChannelsPerHeadstage[MAX_NUM_HEADSTAGES + 1];
+    Array<const Headstage*> headstages = board->getConnectedHeadstages();
 
-    chainUpdate = false;
+    int column = -1;
+    
+    maxChannels = 0;
 
-    for (int k = 0; k<MAX_NUM_HEADSTAGES; k++)
+    for (auto hs : headstages)
     {
-        if (thread->isHeadstageEnabled(k))
+        column++;
+
+        maxChannels = hs->getNumActiveChannels() > maxChannels ? hs->getNumActiveChannels() : maxChannels;
+
+        Label* lbl = new Label(hs->getStreamPrefix(), hs->getStreamPrefix());
+        lbl->setEditable(false);
+        lbl->setBounds(10 + column * columnWidth, 40, columnWidth, 25);
+        lbl->setJustificationType(juce::Justification::centred);
+        lbl->setColour(Label::textColourId, juce::Colours::white);
+        staticLabels.add(lbl);
+        addAndMakeVisible(lbl);
+
+        for (int ch = 0; ch < hs->getNumActiveChannels(); ch++)
         {
-            numChannelsPerHeadstage[k] = thread->getActiveChannelsInHeadstage(k);
-            hsActive[k] = true;
-            hsColumn[k] = numActiveHeadstages*columnWidth;
-            numActiveHeadstages++;
-        }
-        else
-        {
-            numChannelsPerHeadstage[k] = 0;
-            hsActive[k] = false;
-            hsColumn[k] = 0;
-        }
-    }
+            ChannelComponent* comp = 
+                new ChannelComponent(
+                    this, 
+                    ch, 
+                    0, 
+                    hs->getChannelName(ch), 
+                    gains, 
+                    ContinuousChannel::ELECTRODE);
 
-    if (thread->getNumDataOutputs(DataChannel::ADC_CHANNEL,0) > 0)
-    {
-        numChannelsPerHeadstage[MAX_NUM_HEADSTAGES] = thread->getNumDataOutputs(DataChannel::ADC_CHANNEL, 0);
-        hsActive[MAX_NUM_HEADSTAGES] = true;
-        hsColumn[MAX_NUM_HEADSTAGES] = numActiveHeadstages*columnWidth;
-        numActiveHeadstages++;
-    }
-    else
-    {
-        numChannelsPerHeadstage[MAX_NUM_HEADSTAGES] = 0;
-        hsActive[MAX_NUM_HEADSTAGES] = false;
-        hsColumn[MAX_NUM_HEADSTAGES] = 0;
-    }
+            comp->setBounds(10 + column * columnWidth, 70 + ch * 22, columnWidth, 22);
 
-    StringArray streamNames;
-    streamNames.add("Port A1");
-    streamNames.add("Port A2");
-    streamNames.add("Port B1");
-    streamNames.add("Port B2");
-    streamNames.add("Port C1");
-    streamNames.add("Port C2");
-    streamNames.add("Port D1");
-    streamNames.add("Port D2");
-    streamNames.add("ADC");
-
-    for (int k = 0; k < MAX_NUM_HEADSTAGES + 1; k++)
-    {
-        if (hsActive[k])
-        {
-            Label* lbl = new Label(streamNames[k],streamNames[k]);
-            lbl->setEditable(false);
-            lbl->setBounds(10+hsColumn[k],40,columnWidth, 25);
-            lbl->setJustificationType(juce::Justification::centred);
-            lbl->setColour(Label::textColourId,juce::Colours::white);
-            staticLabels.add(lbl);
-            addAndMakeVisible(lbl);
-
-        }
-
-    }
-
-    for (int k = 0; k < MAX_NUM_HEADSTAGES + 1; k++) // +1 is for the ADC "headstage"
-    {
-        if (hsActive[k])
-        {
-            int nchans = numChannelsPerHeadstage[k];
-            if (k < MAX_NUM_HEADSTAGES && thread->isAuxEnabled())
-                nchans += 3;
-            for (int ch = 0; ch < nchans; ch++)
+            if (hs->hasImpedanceData())
             {
-                int channelGainIndex = 1;
-                int realChan = thread->getChannelFromHeadstage(k, ch);
-                float ch_gain = proc->getDataChannel(realChan)->getBitVolts() / proc->getBitVolts(proc->getDataChannel(realChan));
-                for (int j = 0; j < gains.size(); j++)
-                {
-                    if (fabs(gains[j] - ch_gain) < 1e-3)
-                    {
-                        channelGainIndex = j;
-                        break;
-                    }
-                }
-                if (k < MAX_NUM_HEADSTAGES)
-                    type = ch < numChannelsPerHeadstage[k] ? DataChannel::HEADSTAGE_CHANNEL : DataChannel::AUX_CHANNEL;
-                else
-                    type = DataChannel::ADC_CHANNEL;
-
-                FPGAchannelComponent* comp = new FPGAchannelComponent(this, realChan, channelGainIndex + 1, thread->getChannelName(realChan), gains, type);
-                comp->setBounds(10 + hsColumn[k], 70 + ch * 22, columnWidth, 22);
-                comp->setUserDefinedData(k);
-                addAndMakeVisible(comp);
-                channelComponents.add(comp);
+                comp->setImpedanceValues(
+                    hs->getImpedanceMagnitude(ch),
+                    hs->getImpedancePhase(ch));
             }
+            //comp->setUserDefinedData(k);
+            channelComponents.add(comp);
+            addAndMakeVisible(comp);
         }
     }
 
-
-    StringArray ttlNames;
-    proc->getEventChannelNames(ttlNames);
-    // add buttons for TTL channels
-    for (int k=0; k<ttlNames.size(); k++)
-    {
-        FPGAchannelComponent* comp = new FPGAchannelComponent(this,k, -1, ttlNames[k],gains,DataChannel::INVALID); //let's treat invalid as an event channel
-        comp->setBounds(10+numActiveHeadstages*columnWidth,70+k*22,columnWidth,22);
-        comp->setUserDefinedData(k);
-        addAndMakeVisible(comp);
-        channelComponents.add(comp);
-    }
-
-    Label* lbl = new Label("TTL Events", "TTL Events");
-    lbl->setEditable(false);
-    lbl->setBounds(numActiveHeadstages*columnWidth, 40, columnWidth, 25);
-    lbl->setJustificationType(juce::Justification::centred);
-    lbl->setColour(Label::textColourId, juce::Colours::white);
-    staticLabels.add(lbl);
-    addAndMakeVisible(lbl);
-
-    chainUpdate = true;*/
+    //if (board->enableAdcs())
+    //{
+        // create ADC channel interface
+    //}
 }
 
 void ChannelList::disableAll()
@@ -247,7 +172,6 @@ void ChannelList::disableAll()
 
     impedanceButton->setEnabled(false);
     saveImpedanceButton->setEnabled(false);
-    autoMeasureButton->setEnabled(false);
     numberingScheme->setEnabled(false);
 }
 
@@ -259,7 +183,6 @@ void ChannelList::enableAll()
     }
     impedanceButton->setEnabled(true);
     saveImpedanceButton->setEnabled(true);
-    autoMeasureButton->setEnabled(true);
     numberingScheme->setEnabled(true);
 }
 
@@ -283,21 +206,13 @@ void ChannelList::updateButtons()
 {
 }
 
-int ChannelList::getNumChannels()
-{
-    return 0;
-}
-
 void ChannelList::comboBoxChanged(ComboBox* b)
 {
     if (b == numberingScheme)
     {
-       // SourceNode* p = (SourceNode*)proc;
-        //RHD2000Thread* thread = (RHD2000Thread*)p->getThread();
-        //int scheme = numberingScheme->getSelectedId();
-        //thread->setDefaultNamingScheme(scheme);
-        //update();
-       //p->requestChainUpdate();
+       board->setNamingScheme((ChannelNamingScheme) b->getSelectedId());
+
+       CoreServices::updateSignalChain(editor);
     }
 }
 

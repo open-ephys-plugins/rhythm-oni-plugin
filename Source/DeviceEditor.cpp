@@ -209,28 +209,24 @@ void DeviceEditor::measureImpedance()
 {
 
     board->runImpedanceTest();
+
+    CoreServices::updateSignalChain(this);
 }
 
 void DeviceEditor::saveImpedance(File& file)
 {
    
+    std::cout << "Saving impedances to " << file.getFullPathName() << std::endl;
+    
     board->saveImpedances(file);
 }
 
-void DeviceEditor::handleAsyncUpdate()
+void DeviceEditor::updateSettings()
 {
-    /*if (!impedanceData->valid)
-        return;
-
-    if (canvas == nullptr)
-        VisualizerEditor::canvas = createNewCanvas();
-
-    // update components...
-    canvas->updateImpedance(impedanceData->streams, 
-                            impedanceData->channels, 
-                            impedanceData->magnitudes, 
-                            impedanceData->phases);*/
-
+    if (canvas != nullptr)
+    {
+        canvas->update();
+    }
 }
 
 void DeviceEditor::comboBoxChanged(ComboBox* comboBox)
@@ -367,12 +363,15 @@ void DeviceEditor::saveVisualizerEditorParameters(XmlElement* xml)
     xml->setAttribute("auto_measure_impedances",measureWhenRecording);
     xml->setAttribute("LEDs", ledButton->getToggleState());
     xml->setAttribute("ClockDivideRatio", clockInterface->getClockDivideRatio());
+    
     for (int i = 0; i < 8; i++)
     {
         XmlElement* adc = xml->createNewChildElement("ADCRANGE");
         adc->setAttribute("Channel", i);
         adc->setAttribute("Range", board->getAdcRange(i));
     }
+
+    // save channel naming scheme
 }
 
 void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
@@ -750,7 +749,7 @@ void HeadstageOptionsInterface::buttonClicked(Button* button)
             board->setNumChannels(hsNumber1, channelsOnHs1);
 
             //board->updateChannels();
-            editor->updateSettings();
+            //editor->updateSettings();
 
         }
         else if ((button == hsButton2) && (board->getChannelsInHeadstage(hsNumber2) == 32))
@@ -762,8 +761,7 @@ void HeadstageOptionsInterface::buttonClicked(Button* button)
 
             hsButton2->setLabel(String(channelsOnHs2));
             board->setNumChannels(hsNumber2, channelsOnHs2);
-            //board->updateChannels();
-            editor->updateSettings();
+            //editor->updateSettings();
         }
 
         CoreServices::updateSignalChain(editor);

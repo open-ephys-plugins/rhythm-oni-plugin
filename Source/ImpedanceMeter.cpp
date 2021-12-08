@@ -136,7 +136,7 @@ float ImpedanceMeter::updateImpedanceFrequency(float desiredImpedanceFreq, bool&
 }
 
 
-int ImpedanceMeter::loadAmplifierData(queue<Rhd2000DataBlock>& dataQueue,
+int ImpedanceMeter::loadAmplifierData(std::queue<Rhd2000DataBlock>& dataQueue,
     int numBlocks, int numDataStreams)
 {
 
@@ -275,6 +275,8 @@ void ImpedanceMeter::run()
 
     board->impedanceMeasurementFinished();
 
+    setProgress(1.0f);
+
 }
 
 #define CHECK_EXIT if (threadShouldExit()) return
@@ -283,7 +285,9 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
 {
     int commandSequenceLength, stream, channel, capRange;
     double cSeries;
-    vector<int> commandList;
+    std::vector<int> commandList;
+
+    setProgress(0.0f);
 
     int numdataStreams = board->evalBoard->getNumEnabledDataStreams();
 
@@ -428,25 +432,26 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
         case 0:
             board->chipRegisters.setZcheckScale(Rhd2000Registers::ZcheckCs100fF);
             cSeries = 0.1e-12;
-            cout << "setting capacitance to 0.1pF" << endl;
+            //cout << "setting capacitance to 0.1pF" << endl;
             break;
         case 1:
             board->chipRegisters.setZcheckScale(Rhd2000Registers::ZcheckCs1pF);
             cSeries = 1.0e-12;
-            cout << "setting capacitance to 1pF" << endl;
+            //cout << "setting capacitance to 1pF" << endl;
             break;
         case 2:
             board->chipRegisters.setZcheckScale(Rhd2000Registers::ZcheckCs10pF);
             cSeries = 10.0e-12;
-            cout << "setting capacitance to 10pF" << endl;
+            //cout << "setting capacitance to 10pF" << endl;
             break;
         }
 
         // Check all 32 channels across all active data streams.
         for (channel = 0; channel < 32; ++channel)
         {
+
             CHECK_EXIT;
-            std::cout << "running impedance on channel " << channel << std::endl;
+            //std::cout << "running impedance on channel " << channel << std::endl;
 
             board->chipRegisters.setZcheckChannel(channel);
             commandSequenceLength =
@@ -459,11 +464,17 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
             {
 
             }
-            queue<Rhd2000DataBlock> dataQueue;
+            std::queue<Rhd2000DataBlock> dataQueue;
             board->evalBoard->readDataBlocks(numBlocks, dataQueue);
             loadAmplifierData(dataQueue, numBlocks, numdataStreams);
+
             for (stream = 0; stream < numdataStreams; ++stream)
             {
+
+                setProgress(float(capRange) / 3.0f 
+                            + (float(channel) / 32.0f / 3.0f) 
+                            + (float(stream) / float(numdataStreams) / 32.0f / 3.0f));
+
                 if (board->chipId[stream] != CHIP_ID_RHD2164_B)
                 {
                     measureComplexAmplitude(measuredMagnitude, measuredPhase,
@@ -569,10 +580,10 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
                 impedances.magnitudes.add(impedanceMagnitude);
                 impedances.phases.add(impedancePhase);
 
-                if (impedanceMagnitude > 1000000)
-                    cout << "stream " << stream << " channel " << 1 + channel << " magnitude: " << String(impedanceMagnitude / 1e6, 2) << " MOhm , phase : " << impedancePhase << endl;
-                else
-                    cout << "stream " << stream << " channel " << 1 + channel << " magnitude: " << String(impedanceMagnitude / 1e3, 2) << " kOhm , phase : " << impedancePhase << endl;
+                //if (impedanceMagnitude > 1000000)
+                //    cout << "stream " << stream << " channel " << 1 + channel << " magnitude: " << String(impedanceMagnitude / 1e6, 2) << " MOhm , phase : " << impedancePhase << endl;
+                //else
+                //    cout << "stream " << stream << " channel " << 1 + channel << " magnitude: " << String(impedanceMagnitude / 1e3, 2) << " kOhm , phase : " << impedancePhase << endl;
 
             }
         }

@@ -54,7 +54,6 @@ namespace RhythmNode
 		void disableEdit();
 		void enableEdit();
 
-
 		void setEnabledState(bool);
 		bool getEnabledState()
 		{

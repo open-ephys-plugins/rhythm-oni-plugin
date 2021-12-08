@@ -41,27 +41,66 @@
 namespace RhythmNode
 {
 
+
+	/** 
+		A headstage object represents a data source containing 
+		one or more Intan chips.
+
+		Each headstage can send 1 or 2 data streams, each with
+		up to 64 channels.
+
+		A headstage can be identified in the following ways:
+		- dataSource   : port (A1-D2Ddr) that the headstage is connected to
+		- streamIndex  : location in the array of active streams
+		- startChannel : index of the first channel acquired by this headstage,
+						 out of all actively acquired neural data channels
+
+	*/
 	class Headstage
 	{
 	public:
 
 		/** Constructor */
-		Headstage(Rhd2000EvalBoard::BoardDataSource stream);
+		Headstage(Rhd2000EvalBoard::BoardDataSource dataSource);
 
 		/** Destructor*/
 		~Headstage() { }
 
-		/** Returns the index of this headstage's data stream */
-		int getStreamIndex(int index)  const;
+		/** Returns the index of this headstage's data stream (offset = 0 or 1) */
+		int getStreamIndex(int offset)  const;
 
-		/** Returns the number of channels this headstage sens*/
+		/** Sets the index of this headstage's data stream */
+		void setFirstStreamIndex(int streamIndex);
+
+		/** Sets the index of this headstage's first neural data channel*/
+		void setFirstChannel(int channelIndex);
+
+		/** Returns the number of channels this headstage sends*/
 		int getNumChannels()            const;
+
+		/** Sets the number of channels per stream*/
+		void setChannelsPerStream(int nchan);
 
 		/** Returns the number of streams this headstage sends*/
 		int getNumStreams()             const;
 
-		/** Returns the number of actively acquired channels*/
+		/** Sets the number of streams for this headstage (1 or 2)*/
+		void setNumStreams(int num);
+
+		/** Returns the number of actively acquired neural data channels*/
 		int getNumActiveChannels()      const;
+
+		/** Returns the name of a channel at a given index*/
+		String getChannelName(int ch) const;
+
+		/** Returns the prefix for this headstage's data stream*/
+		String getStreamPrefix() const;
+
+		/** Sets the name of a channel at a given index*/
+		void setChannelName(String name, int ch);
+
+		/** Sets the channel naming scheme*/
+		void setNamingScheme(ChannelNamingScheme scheme);
 
 		/** Returns true if the headstage is connected*/
 		bool isConnected() const;
@@ -69,22 +108,42 @@ namespace RhythmNode
 		/** Returns the BoardDataSource object for a given index*/
 		Rhd2000EvalBoard::BoardDataSource getDataStream(int index) const;
 
-		/** Sets the number of streams for this headstage*/
-		void setNumStreams(int num);
-
-		/** Sets the number of channels per stream*/
-		void setChannelsPerStream(int nchan, int index);
-
 		/** Sets the number of half-channels; mainly used for the 16-ch RHD2132 board */
 		void setHalfChannels(bool half); 
 
+		/** Auto-generates the channel names, based on the naming scheme*/
+		void generateChannelNames();
+
+		/** Sets impedance values after measurement*/
+		void setImpedances(Impedances& impedances);
+
+		/** Returns the impedance magnitude for a channel (if it exists)*/
+		float getImpedanceMagnitude(int channel) const;
+
+		/** Returns the impedance phase for a channel (if it exists)*/
+		float getImpedancePhase(int channel) const;
+
+		/** Returns true if impedance has been measured*/
+		bool hasImpedanceData() const { return impedanceMagnitudes.size() > 0; }
+
 	private:
-		Rhd2000EvalBoard::BoardDataSource dataStream;
+		Rhd2000EvalBoard::BoardDataSource dataSource;
 
 		int streamIndex;
+		int firstChannelIndex;
+		
 		int numStreams;
 		int channelsPerStream;
+		
 		bool halfChannels;
+
+		ChannelNamingScheme namingScheme;
+
+		StringArray channelNames;
+		String prefix;
+
+		Array<float> impedanceMagnitudes;
+		Array<float> impedancePhases;
 
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Headstage);
 	};

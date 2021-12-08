@@ -278,7 +278,7 @@ bool DeviceThread::uploadBitfile(String bitfilename)
 
     if (!evalBoard->uploadFpgaBitfile(bitfilename.toStdString()))
     {
-        std::cout << "Couldn't upload bitfile from " << bitfilename << std::endl;
+        //LOGD("Couldn't upload bitfile from ", bitfilename);
 
         bool response = AlertWindow::showOkCancelBox(AlertWindow::NoIcon,
                                                      "FPGA bitfile not found.",
@@ -332,6 +332,8 @@ void DeviceThread::initializeBoard()
 
     bitfilename = executableDirectory;
     bitfilename += File::getSeparatorString();
+    bitfilename += "shared";
+    bitfilename += File::getSeparatorString();
 
     if (boardType == ACQUISITION_BOARD)
         bitfilename += evalBoard->isUSB3() ? "rhd2000_usb3.bit" : "rhd2000.bit";
@@ -344,8 +346,9 @@ void DeviceThread::initializeBoard()
     {
         return;
     }
+
     // Initialize the board
-    std::cout << "Initializing acquisition board." << std::endl;
+    //LOGD("Initializing RHD2000 board.");
     evalBoard->initialize();
     // This applies the following settings:
     //  - sample rate to 30 kHz
@@ -437,6 +440,15 @@ void DeviceThread::initializeBoard()
         int ledArray[8] = {1, 0, 0, 0, 0, 0, 0, 0};
         evalBoard->setLedDisplay(ledArray);
     }
+
+    adcChannelNames.clear();
+    ttlLineNames.clear();
+
+    for (int i = 0; i < 8; i++)
+    {
+        adcChannelNames.add("ADC" + String(i + 1));
+        ttlLineNames.add("TTL" + String(i + 1));
+    }
    
 }
 
@@ -455,7 +467,7 @@ void DeviceThread::scanPorts()
     // Scan SPI ports
     int delay, hs, id;
     int register59Value;
-    //int numChannelsOnPort[4] = {0, 0, 0, 0};
+
     Rhd2000EvalBoard::BoardDataSource initStreamPorts[8] =
     {
         Rhd2000EvalBoard::PortA1,
@@ -466,6 +478,14 @@ void DeviceThread::scanPorts()
         Rhd2000EvalBoard::PortC2,
         Rhd2000EvalBoard::PortD1,
         Rhd2000EvalBoard::PortD2
+        //Rhd2000EvalBoard::PortE1,
+        //Rhd2000EvalBoard::PortE2,
+        //Rhd2000EvalBoard::PortF1,
+        //Rhd2000EvalBoard::PortF2,
+        //Rhd2000EvalBoard::PortG1,
+        //Rhd2000EvalBoard::PortG2,
+        //Rhd2000EvalBoard::PortH1,
+        //Rhd2000EvalBoard::PortH2
     };
 
     chipId.insertMultiple(0, -1, 8);
@@ -475,13 +495,15 @@ void DeviceThread::scanPorts()
 
     // Enable all data streams, and set sources to cover one or two chips
     // on Ports A-D.
+
+    // THIS IS DIFFERENT FOR RECORDING CONTROLLER:
     for (int i = 0; i < 8; i++)
         evalBoard->setDataSource(i, initStreamPorts[i]);
 
     for (int i = 0; i < 8; i++)
         evalBoard->enableDataStream(i, true);
 
-    std::cout << "Number of enabled data streams: " << evalBoard->getNumEnabledDataStreams() << std::endl;
+//    LOGD("Number of enabled data streams: ", evalBoard->getNumEnabledDataStreams());
 
     evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortA,
         Rhd2000EvalBoard::AuxCmd3, 0);
@@ -614,22 +636,24 @@ void DeviceThread::scanPorts()
         if ((tmpChipId[hs] > 0) && (enabledStreams.size() < MAX_NUM_DATA_STREAMS))
         {
             chipId.set(chipIdx++,tmpChipId[hs]);
-            //std::cout << "Enabling headstage on stream " << stream << std::endl;
+
+            //LOGD("Enabling headstage ", hs);
+
             if (tmpChipId[hs] == CHIP_ID_RHD2164) //RHD2164
             {
                 if (enabledStreams.size() < MAX_NUM_DATA_STREAMS - 1)
                 {
-                    enableHeadstage(hs,true,2,32);
-                    chipId.set(chipIdx++,CHIP_ID_RHD2164_B);
+                    enableHeadstage(hs, true, 2, 32);
+                    chipId.set(chipIdx++, CHIP_ID_RHD2164_B);
                 }
                 else //just one stream left
                 {
-                    enableHeadstage(hs,true,1,32);
+                    enableHeadstage(hs, true, 1, 32);
                 }
             }
             else
             {
-                enableHeadstage(hs, true,1,tmpChipId[hs] == 1 ? 32:16);
+                enableHeadstage(hs, true, 1, tmpChipId[hs] == 1 ? 32:16);
             }
         }
         else
@@ -777,16 +801,6 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
 
     sourceStreams->add(stream);
 
-    StringArray stream_prefix;
-    stream_prefix.add("A1");
-    stream_prefix.add("A2");
-    stream_prefix.add("B1");
-    stream_prefix.add("B2");
-    stream_prefix.add("C1");
-    stream_prefix.add("C2");
-    stream_prefix.add("D1");
-    stream_prefix.add("D2");
-
     int hsIndex = -1;
 
     for (auto headstage : headstages)
@@ -798,11 +812,9 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
             for (int ch = 0; ch < headstage->getNumChannels(); ch++)
             {
 
-                String name = stream_prefix[hsIndex] + "_CH" + String(ch + 1);
-
                 ContinuousChannel::Settings channelSettings{
                     ContinuousChannel::ELECTRODE,
-                    name,
+                    headstage->getChannelName(ch),
                     "description",
                     "identifier",
 
@@ -814,11 +826,11 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
                 continuousChannels->add(new ContinuousChannel(channelSettings));
                 continuousChannels->getLast()->setUnits("uV");
 
-                channelNames.add(name);
-
-                // set impedance if available
-                //continuousChannels->getLast()->impedance.frequency = F;
-                //continuousChannels->getLast()->impedance.value = V;
+                if (impedances.valid)
+                {
+                    continuousChannels->getLast()->impedance.frequency = headstage->getImpedanceMagnitude(ch);
+                    continuousChannels->getLast()->impedance.value = headstage->getImpedancePhase(ch);
+                }
 
             }
 
@@ -827,11 +839,9 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
                 for (int ch = 0; ch < 3; ch++)
                 {
 
-                    String name = stream_prefix[hsIndex] + "_AUX" + String(ch + 1);
-
                     ContinuousChannel::Settings channelSettings{
                         ContinuousChannel::AUX,
-                       name,
+                        headstage->getStreamPrefix() + "_AUX" + String(ch + 1),
                         "description",
                         "identifier",
 
@@ -876,7 +886,19 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
 
 void DeviceThread::impedanceMeasurementFinished()
 {
-    // call update settings
+
+    if (impedances.valid)
+    {
+        std::cout << "Updating headstage impedance values" << std::endl;
+
+        for (auto hs : headstages)
+        {
+            if (hs->isConnected())
+            {
+                hs->setImpedances(impedances);
+            }
+        }
+    }
 }
 
 void DeviceThread::saveImpedances(File& file)
@@ -884,22 +906,33 @@ void DeviceThread::saveImpedances(File& file)
 
     if (impedances.valid)
     {
-        /*XmlDocument doc(file);
+        std::unique_ptr<XmlElement> xml = std::unique_ptr<XmlElement>(new XmlElement("IMPEDANCES"));
 
-        ScopedPointer<XmlElement> xml = new XmlElement("CHANNEL_IMPEDANCES");
+        int globalChannelNumber = -1;
 
-        for (int i = 0; i < impedances.channels.size(); i++)
+        for (auto hs : headstages)
         {
-            XmlElement* chan = new XmlElement("CHANNEL");
-            chan->setAttribute("name", getChannelName(i));
-            chan->setAttribute("stream", impedances.streams[i]);
-            chan->setAttribute("channel_number", impedances.channels[i]);
-            chan->setAttribute("magnitude", impedances.magnitudes[i]);
-            chan->setAttribute("phase", impedances.phases[i]);
-            xml->addChildElement(chan);
+            XmlElement* headstageXml = new XmlElement("HEADSTAGE");
+            headstageXml->setAttribute("name", hs->getStreamPrefix());
+
+            for (int ch = 0; ch < hs->getNumActiveChannels(); ch++)
+            {
+                globalChannelNumber++;
+
+                XmlElement* channelXml = new XmlElement("CHANNEL");
+                channelXml->setAttribute("name", hs->getChannelName(ch));
+                channelXml->setAttribute("number", globalChannelNumber);
+                channelXml->setAttribute("magnitude", hs->getImpedanceMagnitude(ch));
+                channelXml->setAttribute("phase", hs->getImpedancePhase(ch));
+                headstageXml->addChildElement(channelXml);
+            }
+
+            xml->addChildElement(headstageXml);
         }
 
-        xml->writeTo(file);*/
+        //juce::XmlElement::TextFormat textFormat;
+
+        //xml->writeTo(file, textFormat);
     }
    
 }
@@ -914,6 +947,14 @@ bool DeviceThread::isAcquisitionActive() const
     return isTransmitting;
 }
 
+void DeviceThread::setNamingScheme(ChannelNamingScheme scheme)
+{
+    for (auto hs : headstages)
+    {
+        hs->setNamingScheme(scheme);
+    }
+}
+
 void DeviceThread::setNumChannels(int hsNum, int numChannels)
 {
     if (headstages[hsNum]->getNumChannels() == 32)
@@ -924,6 +965,18 @@ void DeviceThread::setNumChannels(int hsNum, int numChannels)
             headstages[hsNum]->setHalfChannels(false);
 
         numChannelsPerDataStream.set(headstages[hsNum]->getStreamIndex(0), numChannels);
+    }
+
+    int channelIndex = 0;
+
+    for (auto hs : headstages)
+    {
+        if (hs->isConnected())
+        {
+            hs->setFirstChannel(channelIndex);
+
+            channelIndex += hs->getNumActiveChannels();
+        }
     }
 }
 
@@ -1112,8 +1165,10 @@ bool DeviceThread::enableHeadstage(int hsNum, bool enabled, int nStr, int strCha
 
     if (enabled)
     {
+        headstages[hsNum]->setFirstChannel(getNumDataOutputs(ContinuousChannel::ELECTRODE));
         headstages[hsNum]->setNumStreams(nStr);
-        headstages[hsNum]->setChannelsPerStream(strChans,enabledStreams.size());
+        headstages[hsNum]->setChannelsPerStream(strChans);
+        headstages[hsNum]->setFirstStreamIndex(enabledStreams.size());
         enabledStreams.add(headstages[hsNum]->getDataStream(0));
         numChannelsPerDataStream.add(strChans);
 
@@ -1126,11 +1181,13 @@ bool DeviceThread::enableHeadstage(int hsNum, bool enabled, int nStr, int strCha
     else
     {
         int idx = enabledStreams.indexOf(headstages[hsNum]->getDataStream(0));
+
         if (idx >= 0)
         {
             enabledStreams.remove(idx);
             numChannelsPerDataStream.remove(idx);
         }
+
         if (headstages[hsNum]->getNumStreams() > 1)
         {
             idx = enabledStreams.indexOf(headstages[hsNum]->getDataStream(1));
@@ -1140,6 +1197,7 @@ bool DeviceThread::enableHeadstage(int hsNum, bool enabled, int nStr, int strCha
                 numChannelsPerDataStream.remove(idx);
             }
         }
+
         headstages[hsNum]->setNumStreams(0);
     }
 
@@ -1362,7 +1420,7 @@ void DeviceThread::updateRegisters()
     chipRegisters.defineSampleRate(settings.boardSampleRate);
 
     int commandSequenceLength;
-    vector<int> commandList;
+    std::vector<int> commandList;
 
     // Create a command list for the AuxCmd1 slot.  This command sequence will continuously
     // update Register 3, which controls the auxiliary digital output pin on each RHD2000 chip.
@@ -1512,21 +1570,21 @@ bool DeviceThread::startAcquisition()
         evalBoard->setLedDisplay(ledArray);
     }
     
-    cout << "Number of 16-bit words in FIFO: " << evalBoard->numWordsInFifo() << endl;
-    cout << "Is eval board running: " << evalBoard->isRunning() << endl;
+    //LOGD( "Number of 16-bit words in FIFO: ", evalBoard->numWordsInFifo());
+    //LOGD("Is eval board running: ", evalBoard->isRunning());
 
-    std::cout << "Starting acquisition." << std::endl;
+    //LOGD("RHD2000 data thread starting acquisition.");
 
     if (1)
     {
-        std::cout << "Flushing FIFO." << std::endl;
+        //LOGD("Flushing FIFO.");
         evalBoard->flush();
         evalBoard->setContinuousRunMode(true);
         evalBoard->run();
     }
 
     blockSize = dataBlock->calculateDataBlockSizeInWords(evalBoard->getNumEnabledDataStreams(), evalBoard->isUSB3());
-    std::cout << "Expecting blocksize of " << blockSize << " for " << evalBoard->getNumEnabledDataStreams() << " streams" << std::endl;
+    //LOGD("Expecting blocksize of ", blockSize, " for ", evalBoard->getNumEnabledDataStreams(), " streams");
 
     startThread();
 
@@ -1538,8 +1596,7 @@ bool DeviceThread::startAcquisition()
 bool DeviceThread::stopAcquisition()
 {
 
-    //  isTransmitting = false;
-    std::cout << "RHD2000 data thread stopping acquisition." << std::endl;
+    //LOGD("RHD2000 data thread stopping acquisition.");
 
     if (isThreadRunning())
     {
@@ -1549,11 +1606,11 @@ bool DeviceThread::stopAcquisition()
 
     if (waitForThreadToExit(500))
     {
-        std::cout << "Thread exited." << std::endl;
+        //LOGD("RHD2000 data thread exited.");
     }
     else
     {
-        std::cout << "Thread failed to exit, continuing anyway..." << std::endl;
+        //LOGD("RHD2000 data thread failed to exit, continuing anyway...");
     }
 
     if (deviceFound)
@@ -1568,7 +1625,7 @@ bool DeviceThread::stopAcquisition()
 
     if (deviceFound && boardType == ACQUISITION_BOARD)
     {
-        cout << "Number of 16-bit words in FIFO: " << evalBoard->numWordsInFifo() << endl;
+        std::cout << "Number of 16-bit words in FIFO: " << evalBoard->numWordsInFifo() << std::endl;
 
         int ledArray[8] = {1, 0, 0, 0, 0, 0, 0, 0};
         evalBoard->setLedDisplay(ledArray);
@@ -1608,7 +1665,7 @@ bool DeviceThread::updateBuffer()
 
             if (!Rhd2000DataBlock::checkUsbHeader(bufferPtr, index))
             {
-                cerr << "Error in Rhd2000EvalBoard::readDataBlock: Incorrect header." << endl;
+                std::cerr << "Error in Rhd2000EvalBoard::readDataBlock: Incorrect header." << std::endl;
                 break;
             }
 
@@ -1806,6 +1863,19 @@ int DeviceThread::getChannelFromHeadstage (int hs, int ch)
     }
 }
 
+Array<const Headstage*> DeviceThread::getConnectedHeadstages()
+{
+    Array<const Headstage*> headstageArray;
+
+    for (auto hs : headstages)
+    {
+        if (hs->isConnected())
+            headstageArray.add(hs);
+    }
+
+    return headstageArray;
+}
+
 int DeviceThread::getHeadstageChannel (int& hs, int ch) const
 {
     int channelCount = 0;
@@ -1901,8 +1971,10 @@ void DeviceThread::runImpedanceTest()
 {
     
     impedanceThread->stopThreadSafely();
-
+    
     impedanceThread->runThread();
+
+    std::cout << "Thread finished." << std::endl;
 }
 
 
