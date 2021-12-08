@@ -121,6 +121,9 @@ namespace RhythmNode
 		/** Sets the method for determining channel names*/
 		void setNamingScheme(ChannelNamingScheme scheme);
 
+		/** Gets the method for determining channel names*/
+		ChannelNamingScheme getNamingScheme();
+
 		/** Allow the thread to respond to messages sent by other plugins */
 		void handleMessage(String msg);
 
@@ -194,7 +197,6 @@ namespace RhythmNode
 		void setDACchannel(int dacOutput, int channel);
 		void setDACthreshold(int dacOutput, float threshold);
 		
-
 		int getHeadstageChannels(int hsNum) const;
 		int getActiveChannelsInHeadstage(int hsNum) const;
 
@@ -356,6 +358,8 @@ namespace RhythmNode
 		Array<int> chipId;
 
 		Array<int> numChannelsPerDataStream;
+
+		ChannelNamingScheme channelNamingScheme;
 
 		/** ADC info */
 		std::array<std::atomic_short, 8> adcRangeSettings;

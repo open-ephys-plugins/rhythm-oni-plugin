@@ -62,7 +62,6 @@ ChannelList::ChannelList(DeviceThread* board_, DeviceEditor* editor_) :
     saveImpedanceButton->setRadius(3);
     saveImpedanceButton->setBounds(430,10,150,25);
     saveImpedanceButton->addListener(this);
-    saveImpedanceButton->setEnabled(false);
     addAndMakeVisible(saveImpedanceButton);
 
     gains.clear();
@@ -117,6 +116,8 @@ void ChannelList::update()
     int column = -1;
     
     maxChannels = 0;
+
+    numberingScheme->setSelectedId(board->getNamingScheme(), dontSendNotification);
 
     for (auto hs : headstages)
     {

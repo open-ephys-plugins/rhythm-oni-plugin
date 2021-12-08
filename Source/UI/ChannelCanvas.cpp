@@ -94,8 +94,3 @@ void ChannelCanvas::resized()
     channelList->setBounds(0, 0, getWidth()-scrollBarThickness, 200 + 22* channelList->getMaxChannels());
 }
 
-
-void ChannelCanvas::updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase)
-{
-    channelList->updateImpedance(streams, channels,  magnitude, phase);
-}

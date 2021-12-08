@@ -56,6 +56,7 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
     chipRegisters(30000.0f),
     deviceFound(false),
     isTransmitting(false),
+    channelNamingScheme(GLOBAL_INDEX),
     updateSettingsDuringAcquisition(false)
 {
 
@@ -990,9 +991,7 @@ void DeviceThread::saveImpedances(File& file)
             xml->addChildElement(headstageXml);
         }
 
-        //juce::XmlElement::TextFormat textFormat;
-
-        //xml->writeTo(file);
+        xml->writeTo(file);
     }
    
 }
@@ -1009,10 +1008,18 @@ bool DeviceThread::isAcquisitionActive() const
 
 void DeviceThread::setNamingScheme(ChannelNamingScheme scheme)
 {
+
+    channelNamingScheme = scheme;
+
     for (auto hs : headstages)
     {
         hs->setNamingScheme(scheme);
     }
+}
+
+ChannelNamingScheme DeviceThread::getNamingScheme()
+{
+    return channelNamingScheme;
 }
 
 void DeviceThread::setNumChannels(int hsNum, int numChannels)

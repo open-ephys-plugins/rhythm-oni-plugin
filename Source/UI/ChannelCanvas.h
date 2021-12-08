@@ -74,16 +74,7 @@ namespace RhythmNode
 
 		/** Called when data acquisition ends*/
 		void endAnimation();
-
-		/** Called by an editor to initiate a parameter change.*/
-		void setParameter(int, float) { }
-
-		/** Called by an editor to initiate a parameter change.*/
-		void setParameter(int, int, int, float) { }
-		
-		/** Updates displayed impedance values*/
-		void updateImpedance(Array<int> streams, Array<int> channels, Array<float> magnitude, Array<float> phase);
-
+	
 		/** Child components*/
 		std::unique_ptr<Viewport> channelViewport;
 		std::unique_ptr<ChannelList> channelList;
@@ -91,6 +82,7 @@ namespace RhythmNode
 		/** Pointer to the acquisition device */
 		DeviceThread* board;
 
+		/** Pointer to the editor object*/
 		DeviceEditor* editor;
 		
 	};

@@ -404,6 +404,7 @@ void DeviceEditor::saveVisualizerEditorParameters(XmlElement* xml)
     }
 
     // save channel naming scheme
+    xml->setAttribute("Channel_Naming_Scheme", board->getNamingScheme());
 }
 
 void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
@@ -446,6 +447,10 @@ void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
         if (channel >= 0 && range >= 0)
             board->setAdcRange(channel, range);
     }
+
+    // load channel naming scheme
+    board->setNamingScheme((ChannelNamingScheme) xml->getIntAttribute("Channel_Naming_Scheme", 0));
+
 }
 
 
