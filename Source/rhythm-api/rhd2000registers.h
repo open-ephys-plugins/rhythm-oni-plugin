@@ -21,8 +21,6 @@
 #ifndef RHD2000REGISTERS_H
 #define RHD2000REGISTERS_H
 
-using namespace std;
-
 class Rhd2000Registers
 {
 
@@ -73,10 +71,10 @@ public:
     double setUpperBandwidth(double upperBandwidth);
     double setLowerBandwidth(double lowerBandwidth);
 
-    int createCommandListRegisterConfig(vector<int> &commandList, bool calibrate);
-    int createCommandListTempSensor(vector<int> &commandList);
-    int createCommandListUpdateDigOut(vector<int> &commandList);
-    int createCommandListZcheckDac(vector<int> &commandList, double frequency, double amplitude);
+    int createCommandListRegisterConfig(std::vector<int> &commandList, bool calibrate);
+    int createCommandListTempSensor(std::vector<int> &commandList);
+    int createCommandListUpdateDigOut(std::vector<int> &commandList);
+    int createCommandListZcheckDac(std::vector<int> &commandList, double frequency, double amplitude);
 
     enum Rhd2000CommandType {
         Rhd2000CommandConvert,
@@ -152,7 +150,7 @@ private:
     int rLDac3;
 
     // RHD2000 Register 14-17 variables
-    vector<int> aPwr;
+    std::vector<int> aPwr;
 
     double rH1FromUpperBandwidth(double upperBandwidth) const;
     double rH2FromUpperBandwidth(double upperBandwidth) const;

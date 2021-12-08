@@ -25,8 +25,6 @@
 
 #include "rhd2000datablock.h"
 
-using namespace std;
-
 // This class creates a data structure storing SAMPLES_PER_DATA_BLOCK data frames
 // from a Rhythm FPGA interface controlling up to eight RHD2000 chips.
 
@@ -42,19 +40,19 @@ Rhd2000DataBlock::Rhd2000DataBlock(int numDataStreams, bool usb3) : samplesPerBl
 }
 
 // Allocates memory for a 1-D array of integers.
-void Rhd2000DataBlock::allocateIntArray1D(vector<int> &array1D, int xSize)
+void Rhd2000DataBlock::allocateIntArray1D(std::vector<int> &array1D, int xSize)
 {
     array1D.resize(xSize);
 }
 
 // Allocates memory for a 1-D array of unsigned integers.
-void Rhd2000DataBlock::allocateUIntArray1D(vector<unsigned int> &array1D, int xSize)
+void Rhd2000DataBlock::allocateUIntArray1D(std::vector<unsigned int> &array1D, int xSize)
 {
     array1D.resize(xSize);
 }
 
 // Allocates memory for a 2-D array of integers.
-void Rhd2000DataBlock::allocateIntArray2D(vector<vector<int> > & array2D, int xSize, int ySize)
+void Rhd2000DataBlock::allocateIntArray2D(std::vector<std::vector<int> > & array2D, int xSize, int ySize)
 {
     int i;
 
@@ -64,7 +62,7 @@ void Rhd2000DataBlock::allocateIntArray2D(vector<vector<int> > & array2D, int xS
 }
 
 // Allocates memory for a 3-D array of integers.
-void Rhd2000DataBlock::allocateIntArray3D(vector<vector<vector<int> > > &array3D, int xSize, int ySize, int zSize)
+void Rhd2000DataBlock::allocateIntArray3D(std::vector<std::vector<std::vector<int> > > &array3D, int xSize, int ySize, int zSize)
 {
     int i, j;
 
@@ -147,12 +145,12 @@ void Rhd2000DataBlock::fillFromUsbBuffer(unsigned char usbBuffer[], int blockInd
     index = blockIndex * 2 * calculateDataBlockSizeInWords(numDataStreams, usb3);
     for (t = 0; t < samplesToRead; ++t) {
         if (!checkUsbHeader(usbBuffer, index)) {
-            cerr << "Error in Rhd2000EvalBoard::readDataBlock: Incorrect header." << endl;
+            std::cerr << "Error in Rhd2000EvalBoard::readDataBlock: Incorrect header." << std::endl;
             break;
         }
         else
             num++;
-        //else cerr << "Block ok" << endl;
+        //else cerr << "Block ok" << std::endl;
         index += 8; // magic number header width (bytes)
         timeStamp[t] = convertUsbTimeStamp(usbBuffer, index);
         index += 4; // timestamp width
@@ -189,7 +187,7 @@ void Rhd2000DataBlock::fillFromUsbBuffer(unsigned char usbBuffer[], int blockInd
         ttlOut[t] = convertUsbWord(usbBuffer, index);
         index += 2;
     }
-    //cout << "Read " << num << " valid samples with " << numDataStreams << " streams. Usb mode status: " << usb3 << endl;
+    //std::cout << "Read " << num << " valid samples with " << numDataStreams << " streams. Usb mode status: " << usb3 << std::endl;
 }
 
 // Print the contents of RHD2000 registers from a selected USB data stream (0-7)
@@ -198,10 +196,10 @@ void Rhd2000DataBlock::print(int stream) const
 {
     const int RamOffset = 37;
 
-    cout << endl;
-    cout << "RHD 2000 Data Block contents:" << endl;
-    cout << "  ROM contents:" << endl;
-    cout << "    Chip Name: " <<
+    std::cout << std::endl;
+    std::cout << "RHD 2000 Data Block contents:" << std::endl;
+    std::cout << "  ROM contents:" << std::endl;
+    std::cout << "    Chip Name: " <<
            (char) auxiliaryData[stream][2][24] <<
            (char) auxiliaryData[stream][2][25] <<
            (char) auxiliaryData[stream][2][26] <<
@@ -209,64 +207,64 @@ void Rhd2000DataBlock::print(int stream) const
            (char) auxiliaryData[stream][2][28] <<
            (char) auxiliaryData[stream][2][29] <<
            (char) auxiliaryData[stream][2][30] <<
-           (char) auxiliaryData[stream][2][31] << endl;
-    cout << "    Company Name:" <<
+           (char) auxiliaryData[stream][2][31] << std::endl;
+    std::cout << "    Company Name:" <<
            (char) auxiliaryData[stream][2][32] <<
            (char) auxiliaryData[stream][2][33] <<
            (char) auxiliaryData[stream][2][34] <<
            (char) auxiliaryData[stream][2][35] <<
-           (char) auxiliaryData[stream][2][36] << endl;
-    cout << "    Intan Chip ID: " << auxiliaryData[stream][2][19] << endl;
-    cout << "    Number of Amps: " << auxiliaryData[stream][2][20] << endl;
-    cout << "    Unipolar/Bipolar Amps: ";
+           (char) auxiliaryData[stream][2][36] << std::endl;
+    std::cout << "    Intan Chip ID: " << auxiliaryData[stream][2][19] << std::endl;
+    std::cout << "    Number of Amps: " << auxiliaryData[stream][2][20] << std::endl;
+    std::cout << "    Unipolar/Bipolar Amps: ";
     switch (auxiliaryData[stream][2][21]) {
         case 0:
-            cout << "bipolar";
+            std::cout << "bipolar";
             break;
         case 1:
-            cout << "unipolar";
+            std::cout << "unipolar";
             break;
         default:
-            cout << "UNKNOWN";
+            std::cout << "UNKNOWN";
     }
-    cout << endl;
-    cout << "    Die Revision: " << auxiliaryData[stream][2][22] << endl;
-    cout << "    Future Expansion Register: " << auxiliaryData[stream][2][23] << endl;
+    std::cout << std::endl;
+    std::cout << "    Die Revision: " << auxiliaryData[stream][2][22] << std::endl;
+    std::cout << "    Future Expansion Register: " << auxiliaryData[stream][2][23] << std::endl;
 
-    cout << "  RAM contents:" << endl;
-    cout << "    ADC reference BW:      " << ((auxiliaryData[stream][2][RamOffset + 0] & 0xc0) >> 6) << endl;
-    cout << "    amp fast settle:       " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x20) >> 5) << endl;
-    cout << "    amp Vref enable:       " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x10) >> 4) << endl;
-    cout << "    ADC comparator bias:   " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x0c) >> 2) << endl;
-    cout << "    ADC comparator select: " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x03) >> 0) << endl;
-    cout << "    VDD sense enable:      " << ((auxiliaryData[stream][2][RamOffset + 1] & 0x40) >> 6) << endl;
-    cout << "    ADC buffer bias:       " << ((auxiliaryData[stream][2][RamOffset + 1] & 0x3f) >> 0) << endl;
-    cout << "    MUX bias:              " << ((auxiliaryData[stream][2][RamOffset + 2] & 0x3f) >> 0) << endl;
-    cout << "    MUX load:              " << ((auxiliaryData[stream][2][RamOffset + 3] & 0xe0) >> 5) << endl;
-    cout << "    tempS2, tempS1:        " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x10) >> 4) << "," <<
-           ((auxiliaryData[stream][2][RamOffset + 3] & 0x08) >> 3) << endl;
-    cout << "    tempen:                " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x04) >> 2) << endl;
-    cout << "    digout HiZ:            " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x02) >> 1) << endl;
-    cout << "    digout:                " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x01) >> 0) << endl;
-    cout << "    weak MISO:             " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x80) >> 7) << endl;
-    cout << "    twoscomp:              " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x40) >> 6) << endl;
-    cout << "    absmode:               " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x20) >> 5) << endl;
-    cout << "    DSPen:                 " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x10) >> 4) << endl;
-    cout << "    DSP cutoff freq:       " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x0f) >> 0) << endl;
-    cout << "    Zcheck DAC power:      " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x40) >> 6) << endl;
-    cout << "    Zcheck load:           " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x20) >> 5) << endl;
-    cout << "    Zcheck scale:          " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x18) >> 3) << endl;
-    cout << "    Zcheck conn all:       " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x04) >> 2) << endl;
-    cout << "    Zcheck sel pol:        " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x02) >> 1) << endl;
-    cout << "    Zcheck en:             " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x01) >> 0) << endl;
-    cout << "    Zcheck DAC:            " << ((auxiliaryData[stream][2][RamOffset + 6] & 0xff) >> 0) << endl;
-    cout << "    Zcheck select:         " << ((auxiliaryData[stream][2][RamOffset + 7] & 0x3f) >> 0) << endl;
-    cout << "    ADC aux1 en:           " << ((auxiliaryData[stream][2][RamOffset + 9] & 0x80) >> 7) << endl;
-    cout << "    ADC aux2 en:           " << ((auxiliaryData[stream][2][RamOffset + 11] & 0x80) >> 7) << endl;
-    cout << "    ADC aux3 en:           " << ((auxiliaryData[stream][2][RamOffset + 13] & 0x80) >> 7) << endl;
-    cout << "    offchip RH1:           " << ((auxiliaryData[stream][2][RamOffset + 8] & 0x80) >> 7) << endl;
-    cout << "    offchip RH2:           " << ((auxiliaryData[stream][2][RamOffset + 10] & 0x80) >> 7) << endl;
-    cout << "    offchip RL:            " << ((auxiliaryData[stream][2][RamOffset + 12] & 0x80) >> 7) << endl;
+    std::cout << "  RAM contents:" << std::endl;
+    std::cout << "    ADC reference BW:      " << ((auxiliaryData[stream][2][RamOffset + 0] & 0xc0) >> 6) << std::endl;
+    std::cout << "    amp fast settle:       " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x20) >> 5) << std::endl;
+    std::cout << "    amp Vref enable:       " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x10) >> 4) << std::endl;
+    std::cout << "    ADC comparator bias:   " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x0c) >> 2) << std::endl;
+    std::cout << "    ADC comparator select: " << ((auxiliaryData[stream][2][RamOffset + 0] & 0x03) >> 0) << std::endl;
+    std::cout << "    VDD sense enable:      " << ((auxiliaryData[stream][2][RamOffset + 1] & 0x40) >> 6) << std::endl;
+    std::cout << "    ADC buffer bias:       " << ((auxiliaryData[stream][2][RamOffset + 1] & 0x3f) >> 0) << std::endl;
+    std::cout << "    MUX bias:              " << ((auxiliaryData[stream][2][RamOffset + 2] & 0x3f) >> 0) << std::endl;
+    std::cout << "    MUX load:              " << ((auxiliaryData[stream][2][RamOffset + 3] & 0xe0) >> 5) << std::endl;
+    std::cout << "    tempS2, tempS1:        " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x10) >> 4) << "," <<
+           ((auxiliaryData[stream][2][RamOffset + 3] & 0x08) >> 3) << std::endl;
+    std::cout << "    tempen:                " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x04) >> 2) << std::endl;
+    std::cout << "    digout HiZ:            " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x02) >> 1) << std::endl;
+    std::cout << "    digout:                " << ((auxiliaryData[stream][2][RamOffset + 3] & 0x01) >> 0) << std::endl;
+    std::cout << "    weak MISO:             " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x80) >> 7) << std::endl;
+    std::cout << "    twoscomp:              " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x40) >> 6) << std::endl;
+    std::cout << "    absmode:               " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x20) >> 5) << std::endl;
+    std::cout << "    DSPen:                 " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x10) >> 4) << std::endl;
+    std::cout << "    DSP cutoff freq:       " << ((auxiliaryData[stream][2][RamOffset + 4] & 0x0f) >> 0) << std::endl;
+    std::cout << "    Zcheck DAC power:      " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x40) >> 6) << std::endl;
+    std::cout << "    Zcheck load:           " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x20) >> 5) << std::endl;
+    std::cout << "    Zcheck scale:          " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x18) >> 3) << std::endl;
+    std::cout << "    Zcheck conn all:       " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x04) >> 2) << std::endl;
+    std::cout << "    Zcheck sel pol:        " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x02) >> 1) << std::endl;
+    std::cout << "    Zcheck en:             " << ((auxiliaryData[stream][2][RamOffset + 5] & 0x01) >> 0) << std::endl;
+    std::cout << "    Zcheck DAC:            " << ((auxiliaryData[stream][2][RamOffset + 6] & 0xff) >> 0) << std::endl;
+    std::cout << "    Zcheck select:         " << ((auxiliaryData[stream][2][RamOffset + 7] & 0x3f) >> 0) << std::endl;
+    std::cout << "    ADC aux1 en:           " << ((auxiliaryData[stream][2][RamOffset + 9] & 0x80) >> 7) << std::endl;
+    std::cout << "    ADC aux2 en:           " << ((auxiliaryData[stream][2][RamOffset + 11] & 0x80) >> 7) << std::endl;
+    std::cout << "    ADC aux3 en:           " << ((auxiliaryData[stream][2][RamOffset + 13] & 0x80) >> 7) << std::endl;
+    std::cout << "    offchip RH1:           " << ((auxiliaryData[stream][2][RamOffset + 8] & 0x80) >> 7) << std::endl;
+    std::cout << "    offchip RH2:           " << ((auxiliaryData[stream][2][RamOffset + 10] & 0x80) >> 7) << std::endl;
+    std::cout << "    offchip RL:            " << ((auxiliaryData[stream][2][RamOffset + 12] & 0x80) >> 7) << std::endl;
 
     int rH1Dac1 = auxiliaryData[stream][2][RamOffset + 8] & 0x3f;
     int rH1Dac2 = auxiliaryData[stream][2][RamOffset + 9] & 0x1f;
@@ -280,16 +278,16 @@ void Rhd2000DataBlock::print(int stream) const
     double rH2 = 8200.0 + rH2Dac2 * 38400.0 + rH2Dac1 * 730.0;
     double rL = 3300.0 + rLDac3 * 3000000.0 + rLDac2 * 15400.0 + rLDac1 * 190.0;
 
-    cout << fixed << setprecision(2);
+    std::cout << std::fixed << std::setprecision(2);
 
-    cout << "    RH1 DAC1, DAC2:        " << rH1Dac1 << " " << rH1Dac2 << " = " << (rH1 / 1000) <<
-            " kOhm" << endl;
-    cout << "    RH2 DAC1, DAC2:        " << rH2Dac1 << " " << rH2Dac2 << " = " << (rH2 / 1000) <<
-            " kOhm" << endl;
-    cout << "    RL DAC1, DAC2, DAC3:   " << rLDac1 << " " << rLDac2 << " " << rLDac3 << " = " <<
-            (rL / 1000) << " kOhm" << endl;
+    std::cout << "    RH1 DAC1, DAC2:        " << rH1Dac1 << " " << rH1Dac2 << " = " << (rH1 / 1000) <<
+            " kOhm" << std::endl;
+    std::cout << "    RH2 DAC1, DAC2:        " << rH2Dac1 << " " << rH2Dac2 << " = " << (rH2 / 1000) <<
+            " kOhm" << std::endl;
+    std::cout << "    RL DAC1, DAC2, DAC3:   " << rLDac1 << " " << rLDac2 << " " << rLDac3 << " = " <<
+            (rL / 1000) << " kOhm" << std::endl;
 
-    cout << "    amp power[31:0]:       " <<
+    std::cout << "    amp power[31:0]:       " <<
            ((auxiliaryData[stream][2][RamOffset + 17] & 0x80) >> 7) <<
            ((auxiliaryData[stream][2][RamOffset + 17] & 0x40) >> 6) <<
            ((auxiliaryData[stream][2][RamOffset + 17] & 0x20) >> 5) <<
@@ -321,9 +319,9 @@ void Rhd2000DataBlock::print(int stream) const
            ((auxiliaryData[stream][2][RamOffset + 14] & 0x08) >> 3) <<
            ((auxiliaryData[stream][2][RamOffset + 14] & 0x04) >> 2) <<
            ((auxiliaryData[stream][2][RamOffset + 14] & 0x02) >> 1) <<
-           ((auxiliaryData[stream][2][RamOffset + 14] & 0x01) >> 0) << endl;
+           ((auxiliaryData[stream][2][RamOffset + 14] & 0x01) >> 0) << std::endl;
 
-    cout << endl;
+    std::cout << std::endl;
 
     int tempA = auxiliaryData[stream][1][12];
     int tempB = auxiliaryData[stream][1][20];
@@ -334,16 +332,16 @@ void Rhd2000DataBlock::print(int stream) const
 
     double vddSense = 0.0000748 * ((double) vddSample);
 
-    cout << setprecision(1);
-    cout << "  Temperature sensor (only one reading): " << tempUnitsC << " C (" <<
-            tempUnitsF << " F)" << endl;
+    std::cout << std::setprecision(1);
+    std::cout << "  Temperature sensor (only one reading): " << tempUnitsC << " C (" <<
+            tempUnitsF << " F)" << std::endl;
 
-    cout << setprecision(2);
-    cout << "  Supply voltage sensor                : " << vddSense << " V" << endl;
+    std::cout << std::setprecision(2);
+    std::cout << "  Supply voltage sensor                : " << vddSense << " V" << std::endl;
 
-    cout << setprecision(6);
-    cout.unsetf(ios::floatfield);
-    cout << endl;
+    std::cout << std::setprecision(6);
+    std::cout.unsetf(std::ios::floatfield);
+    std::cout << std::endl;
 }
 
 // Write a 16-bit dataWord to an outputStream in "little endian" format (i.e., least significant
@@ -352,7 +350,7 @@ void Rhd2000DataBlock::print(int stream) const
 // the processor running the operating system.
 //
 // (See "Endianness" article in Wikipedia for more information.)
-void Rhd2000DataBlock::writeWordLittleEndian(ofstream &outputStream, int dataWord) const
+void Rhd2000DataBlock::writeWordLittleEndian(std::ofstream &outputStream, int dataWord) const
 {
     unsigned short msb, lsb;
 
@@ -364,7 +362,7 @@ void Rhd2000DataBlock::writeWordLittleEndian(ofstream &outputStream, int dataWor
 }
 
 // Write contents of data block to a binary output stream (saveOut) in little endian format.
-void Rhd2000DataBlock::write(ofstream &saveOut, int numDataStreams) const
+void Rhd2000DataBlock::write(std::ofstream &saveOut, int numDataStreams) const
 {
     int t, channel, stream, i;
 

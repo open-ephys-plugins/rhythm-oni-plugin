@@ -36,8 +36,6 @@
 
 #include <queue>
 
-using namespace std;
-
 namespace OpalKellyLegacy
 {
     class okCFrontPanel;
@@ -52,7 +50,7 @@ public:
     ~Rhd2000EvalBoard();
 
     int open(const char* libname); //patched to allow selecting path to dll
-    bool uploadFpgaBitfile(string filename);
+    bool uploadFpgaBitfile(std::string filename);
     void initialize();
 
     enum AmplifierSampleRate {
@@ -86,7 +84,7 @@ public:
     };
 
     enum BoardPort {
-        PortA,
+        PortA = 0,
         PortB,
         PortC,
         PortD,
@@ -96,8 +94,8 @@ public:
         PortH
     };
 
-    void uploadCommandList(const vector<int> &commandList, AuxCmdSlot auxCommandSlot, int bank);
-    void printCommandList(const vector<int> &commandList) const;
+    void uploadCommandList(const std::vector<int> &commandList, AuxCmdSlot auxCommandSlot, int bank);
+    void printCommandList(const std::vector<int> &commandList) const;
     void selectAuxCommandBank(BoardPort port, AuxCmdSlot auxCommandSlot, int bank);
     void selectAuxCommandLength(AuxCmdSlot auxCommandSlot, int loopIndex, int endIndex);
 
@@ -164,11 +162,11 @@ public:
 
     void flush();
     bool readDataBlock(Rhd2000DataBlock *dataBlock, int nSamples = -1);
-    bool readDataBlocks(int numBlocks, queue<Rhd2000DataBlock> &dataQueue);
-    int queueToFile(queue<Rhd2000DataBlock> &dataQueue, std::ofstream &saveOut);
+    bool readDataBlocks(int numBlocks, std::queue<Rhd2000DataBlock> &dataqueue);
+    int queueToFile(std::queue<Rhd2000DataBlock> &dataqueue, std::ofstream &saveOut);
     int getBoardMode() const;
     int getCableDelay(BoardPort port) const;
-    void getCableDelay(vector<int> &delays) const;
+    void getCableDelay(std::vector<int> &delays) const;
 
     //Additions by open-ephys
     void resetFpga();
@@ -184,7 +182,7 @@ private:
     AmplifierSampleRate sampleRate;
     int numDataStreams; // total number of data streams currently enabled
     int dataStreamEnabled[MAX_NUM_DATA_STREAMS]; // 0 (disabled) or 1 (enabled), set for maximum stream number
-    vector<int> cableDelay;
+    std::vector<int> cableDelay;
 
     // Buffer for reading bytes from USB interface
     unsigned char usbBuffer[USB_BUFFER_SIZE];
@@ -245,7 +243,7 @@ private:
         PipeOutData = 0xa0
     };
 
-    string opalKellyModelName(int model) const;
+    std::string opalKellyModelName(int model) const;
     double getSystemClockFreq() const;
 
     bool isDcmProgDone() const;
