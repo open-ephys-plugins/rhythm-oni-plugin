@@ -127,6 +127,9 @@ namespace RhythmNode
 		/** Allow the thread to respond to messages sent by other plugins */
 		void handleMessage(String msg);
 
+		/** Informs the DataThread about whether to expect saved settings to be loaded*/
+		void initialize(bool signalChainIsLoading) override;
+
 		void setNumChannels(int hsNum, int nChannels);
 
 		int getNumChannels();

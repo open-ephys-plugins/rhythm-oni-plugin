@@ -148,6 +148,18 @@ DeviceThread::~DeviceThread()
     delete[] dacChannelsToUpdate;
 }
 
+void DeviceThread::initialize(bool signalChainIsLoading)
+{
+    if (signalChainIsLoading)
+        return;
+
+    // Let's turn one LED on to indicate that the board is now connected
+    if (boardType == ACQUISITION_BOARD)
+    {
+        int ledArray[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
+        evalBoard->setLedDisplay(ledArray);
+    }
+}
 
 std::unique_ptr<GenericEditor> DeviceThread::createEditor(SourceNode* sn)
 {
@@ -494,13 +506,6 @@ void DeviceThread::initializeBoard()
             settings.fastSettleEnabled ? 2 : 1);
         evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortH, Rhd2000EvalBoard::AuxCmd3,
             settings.fastSettleEnabled ? 2 : 1);
-    }
-
-    // Let's turn one LED on to indicate that the board is now connected
-    if (boardType == ACQUISITION_BOARD)
-    {
-        int ledArray[8] = {1, 0, 0, 0, 0, 0, 0, 0};
-        evalBoard->setLedDisplay(ledArray);
     }
 
     adcChannelNames.clear();
