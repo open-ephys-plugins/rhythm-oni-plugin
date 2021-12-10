@@ -751,46 +751,46 @@ void DeviceThread::scanPorts()
     }
 
     evalBoard->setCableDelay(Rhd2000EvalBoard::PortA,
-                             max(optimumDelay[0],optimumDelay[1]));
+                             std::max(optimumDelay[0],optimumDelay[1]));
     evalBoard->setCableDelay(Rhd2000EvalBoard::PortB,
-                             max(optimumDelay[2],optimumDelay[3]));
+                             std::max(optimumDelay[2],optimumDelay[3]));
     evalBoard->setCableDelay(Rhd2000EvalBoard::PortC,
-                             max(optimumDelay[4],optimumDelay[5]));
+                             std::max(optimumDelay[4],optimumDelay[5]));
     evalBoard->setCableDelay(Rhd2000EvalBoard::PortD,
-                             max(optimumDelay[6],optimumDelay[7]));
+                             std::max(optimumDelay[6],optimumDelay[7]));
 
     if (boardType == RHD_RECORDING_CONTROLLER)
     {
         evalBoard->setCableDelay(Rhd2000EvalBoard::PortE,
-            max(optimumDelay[8], optimumDelay[9]));
+            std::max(optimumDelay[8], optimumDelay[9]));
         evalBoard->setCableDelay(Rhd2000EvalBoard::PortF,
-            max(optimumDelay[10], optimumDelay[11]));
+            std::max(optimumDelay[10], optimumDelay[11]));
         evalBoard->setCableDelay(Rhd2000EvalBoard::PortG,
-            max(optimumDelay[12], optimumDelay[13]));
+            std::max(optimumDelay[12], optimumDelay[13]));
         evalBoard->setCableDelay(Rhd2000EvalBoard::PortH,
-            max(optimumDelay[14], optimumDelay[15]));
+            std::max(optimumDelay[14], optimumDelay[15]));
 
     }
 
     settings.cableLength.portA =
-        evalBoard->estimateCableLengthMeters(max(optimumDelay[0],optimumDelay[1]));
+        evalBoard->estimateCableLengthMeters(std::max(optimumDelay[0],optimumDelay[1]));
     settings.cableLength.portB =
-        evalBoard->estimateCableLengthMeters(max(optimumDelay[2],optimumDelay[3]));
+        evalBoard->estimateCableLengthMeters(std::max(optimumDelay[2],optimumDelay[3]));
     settings.cableLength.portC =
-        evalBoard->estimateCableLengthMeters(max(optimumDelay[4],optimumDelay[5]));
+        evalBoard->estimateCableLengthMeters(std::max(optimumDelay[4],optimumDelay[5]));
     settings.cableLength.portD =
-        evalBoard->estimateCableLengthMeters(max(optimumDelay[6],optimumDelay[7]));
+        evalBoard->estimateCableLengthMeters(std::max(optimumDelay[6],optimumDelay[7]));
 
     if (boardType == RHD_RECORDING_CONTROLLER)
     {
         settings.cableLength.portE =
-            evalBoard->estimateCableLengthMeters(max(optimumDelay[8], optimumDelay[9]));
+            evalBoard->estimateCableLengthMeters(std::max(optimumDelay[8], optimumDelay[9]));
         settings.cableLength.portF =
-            evalBoard->estimateCableLengthMeters(max(optimumDelay[10], optimumDelay[11]));
+            evalBoard->estimateCableLengthMeters(std::max(optimumDelay[10], optimumDelay[11]));
         settings.cableLength.portG =
-            evalBoard->estimateCableLengthMeters(max(optimumDelay[12], optimumDelay[13]));
+            evalBoard->estimateCableLengthMeters(std::max(optimumDelay[12], optimumDelay[13]));
         settings.cableLength.portH =
-            evalBoard->estimateCableLengthMeters(max(optimumDelay[14], optimumDelay[15]));
+            evalBoard->estimateCableLengthMeters(std::max(optimumDelay[14], optimumDelay[15]));
     }
 
     setSampleRate(settings.savedSampleRateIndex); // restore saved sample rate
