@@ -17,7 +17,9 @@
 //
 // See http://www.intantech.com for documentation and product information.
 //----------------------------------------------------------------------------------
-
+#ifdef _WIN32
+#define NOMINMAX
+#endif
 #include <iostream>
 #include <iomanip>
 #include <fstream>
