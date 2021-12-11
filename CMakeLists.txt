@@ -104,5 +104,3 @@ elseif(APPLE)
 	target_sources(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib)
 	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared)
 endif()
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Resources/ DESTINATION ${GUI_BIN_DIR}/shared FILES_MATCHING PATTERN "*.bit")

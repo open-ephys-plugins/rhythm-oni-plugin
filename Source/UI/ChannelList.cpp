@@ -98,7 +98,8 @@ void ChannelList::buttonClicked(Button* btn)
         if (chooseOutputFile.browseForFileToSave(true))
         {
             // Use the selected file
-            editor->saveImpedance(chooseOutputFile.getResult());
+            File impedenceFile = chooseOutputFile.getResult();
+            editor->saveImpedance(impedenceFile);
         }
     }
 }

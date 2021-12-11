@@ -17,7 +17,9 @@
 //
 // See http://www.intantech.com for documentation and product information.
 //----------------------------------------------------------------------------------
-
+#ifdef _WIN32
+#define NOMINMAX
+#endif
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -1397,7 +1399,7 @@ void Rhd2000EvalBoard::flush()
         //  std::cout << "Flush phase A: " << numWordsInFifo() << std::endl;
         }
         while (numWordsInFifo() > 0) {
-            dev->ReadFromBlockPipeOut(PipeOutData, USB3_BLOCK_SIZE, USB3_BLOCK_SIZE *max(2 * numWordsInFifo() / USB3_BLOCK_SIZE, (unsigned int)1), usbBuffer);
+            dev->ReadFromBlockPipeOut(PipeOutData, USB3_BLOCK_SIZE, USB3_BLOCK_SIZE * std::max(2 * numWordsInFifo() / USB3_BLOCK_SIZE, (unsigned int)1), usbBuffer);
         //  std::cout << "Flush phase B: " << numWordsInFifo() << std::endl;
         //  printFIFOmetrics();
         }
