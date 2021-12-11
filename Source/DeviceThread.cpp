@@ -894,8 +894,8 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
 
                 if (impedances.valid)
                 {
-                    continuousChannels->getLast()->impedance.frequency = headstage->getImpedanceMagnitude(ch);
-                    continuousChannels->getLast()->impedance.value = headstage->getImpedancePhase(ch);
+                    continuousChannels->getLast()->impedance.magnitude = headstage->getImpedanceMagnitude(ch);
+                    continuousChannels->getLast()->impedance.phase = headstage->getImpedancePhase(ch);
                 }
 
             }
