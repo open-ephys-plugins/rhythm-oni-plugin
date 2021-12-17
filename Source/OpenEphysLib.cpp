@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 using namespace Plugin;
-#define NUM_PLUGINS 4
+#define NUM_PLUGINS 2
 
 extern "C" EXPORT void getLibInfo(Plugin::LibraryInfo* info)
 {
@@ -61,7 +61,7 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 		info->dataThread.name = "Intan RHD USB";
 		info->dataThread.creator = &createDataThread<RhythmNode::IntanUSBInterface>;
 		break;
-	case 2:
+	/*case 2:
 		info->type = Plugin::Type::DATA_THREAD;
 		info->dataThread.name = "RHD Rec Controller";
 		info->dataThread.creator = &createDataThread<RhythmNode::IntanRecordController>;
@@ -71,7 +71,7 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 		info->processor.name = "Acq Board Output";
 		info->processor.type = Plugin::Processor::SINK;
 		info->processor.creator = &createProcessor<AcqBoardOutputNamespace::AcqBoardOutput>;
-		break;
+		break;*/
 	default:
 		return -1;
 		break;
