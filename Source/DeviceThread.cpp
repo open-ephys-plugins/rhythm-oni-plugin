@@ -158,7 +158,7 @@ void DeviceThread::initialize(bool signalChainIsLoading)
         return;
 
     // Let's turn one LED on to indicate that the board is now connected
-    if (boardType == ACQUISITION_BOARD)
+    if (boardType == ACQUISITION_BOARD && deviceFound)
     {
         int ledArray[8] = { 1, 0, 0, 0, 0, 0, 0, 0 };
         evalBoard->setLedDisplay(ledArray);
