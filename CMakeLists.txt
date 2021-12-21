@@ -10,6 +10,8 @@ endif()
 get_filename_component(PROJECT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR} ABSOLUTE)
 get_filename_component(PLUGIN_NAME ${PROJECT_FOLDER} NAME)
 
+set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE STRING "Build architecture for Mac OS X" FORCE)
+
 project(OE_PLUGIN_${PLUGIN_NAME})
 set(CMAKE_SHARED_LIBRARY_PREFIX "")
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -77,9 +79,9 @@ elseif(LINUX)
 elseif(APPLE)
 	set_target_properties(${PLUGIN_NAME} PROPERTIES BUNDLE TRUE)
 	set_property(TARGET ${PLUGIN_NAME} APPEND_STRING PROPERTY LINK_FLAGS
-	"-undefined dynamic_lookup -rpath @loader_path/../../../../shared")
+	"-undefined dynamic_lookup -rpath @loader_path/../../../../shared-api8")
 
-	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/PlugIns)
+	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/plugins-api8)
 endif()
 
 #create filters for vs and xcode
@@ -100,7 +102,5 @@ elseif(LINUX)
 	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.so DESTINATION ${GUI_BIN_DIR}/shared)
 elseif(APPLE)
 	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib")
-	set_source_files_properties(${DLLDIR}/libokFrontPanel.dylib PROPERTIES MACOSX_PACKAGE_LOCATION Frameworks)
-	target_sources(${PLUGIN_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib)
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
 endif()
