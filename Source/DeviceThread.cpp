@@ -99,10 +99,10 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
     libraryFilePath += File::getSeparatorString();
     libraryFilePath += okLIB_NAME;
 
-    dacStream = nullptr;
-    dacChannels = nullptr;
-    dacThresholds = nullptr;
-    dacChannelsToUpdate = nullptr;
+    dacStream = new int[8];
+    dacChannels = new int[8];
+    dacThresholds = new float[8];
+    dacChannelsToUpdate = new bool[8];
 
     if (openBoard(libraryFilePath))
     {
@@ -116,11 +116,6 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
 
         // automatically find connected headstages
         scanPorts(); // things would appear to run more smoothly if this were done after the editor has been created
-
-        dacStream = new int[8];
-        dacChannels = new int[8];
-        dacThresholds = new float[8];
-        dacChannelsToUpdate = new bool[8];
 
         for (int k = 0; k < 8; k++)
         {
