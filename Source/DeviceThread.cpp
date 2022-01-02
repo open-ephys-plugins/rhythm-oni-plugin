@@ -947,6 +947,17 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
         }
     }
 
+    EventChannel::Settings settings{
+            EventChannel::Type::TTL,
+            "name",
+            "description",
+            "identifier",
+            stream,
+            8
+    };
+
+    eventChannels->add(new EventChannel(settings));
+
 }
 
 void DeviceThread::impedanceMeasurementFinished()
