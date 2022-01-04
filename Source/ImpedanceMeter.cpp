@@ -432,17 +432,14 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
         case 0:
             board->chipRegisters.setZcheckScale(Rhd2000Registers::ZcheckCs100fF);
             cSeries = 0.1e-12;
-            //cout << "setting capacitance to 0.1pF" << endl;
             break;
         case 1:
             board->chipRegisters.setZcheckScale(Rhd2000Registers::ZcheckCs1pF);
             cSeries = 1.0e-12;
-            //cout << "setting capacitance to 1pF" << endl;
             break;
         case 2:
             board->chipRegisters.setZcheckScale(Rhd2000Registers::ZcheckCs10pF);
             cSeries = 10.0e-12;
-            //cout << "setting capacitance to 10pF" << endl;
             break;
         }
 
@@ -451,8 +448,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
         {
 
             CHECK_EXIT;
-            //std::cout << "running impedance on channel " << channel << std::endl;
-
+   
             board->chipRegisters.setZcheckChannel(channel);
             commandSequenceLength =
                 board->chipRegisters.createCommandListRegisterConfig(commandList, false);
@@ -570,8 +566,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
                 factorOutParallelCapacitance(impedanceMagnitude, impedancePhase, actualImpedanceFreq,
                     parasiticCapacitance);
 
-                // Perform empirical resistance correction to improve accuarcy at sample rates below
-                // 15 kS/s.
+                // Perform empirical resistance correction to improve accuarcy at sample rates below 15 kS/s.
                 empiricalResistanceCorrection(impedanceMagnitude, impedancePhase,
                     board->settings.boardSampleRate);
 

@@ -48,7 +48,7 @@ ChannelComponent::ChannelComponent(ChannelList* cl,
 
     editName = new Label(name,name);
     editName->setFont(f);
-    editName->setEditable(true);
+    editName->setEditable(false);
     editName->setColour(Label::backgroundColourId,juce::Colours::lightgrey);
     editName->addListener(this);
     addAndMakeVisible(editName);

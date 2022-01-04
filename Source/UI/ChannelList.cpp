@@ -47,7 +47,7 @@ ChannelList::ChannelList(DeviceThread* board_, DeviceEditor* editor_) :
     numberingScheme = new ComboBox("numberingScheme");
     numberingScheme->addItem("Global",1);
     numberingScheme->addItem("Stream-Based",2);
-    numberingScheme->setBounds(110,10,140,25);
+    numberingScheme->setBounds(125,10,140,25);
     numberingScheme->addListener(this);
     numberingScheme->setSelectedId(1, dontSendNotification);
     addAndMakeVisible(numberingScheme);

@@ -56,7 +56,7 @@ int Headstage::getNumStreams() const
 void Headstage::setNumStreams(int num)
 {
 
-    std::cout << "Headstage " << prefix << " setting num streams to " << num << std::endl;
+    //LOGD("Headstage ", prefix, " setting num streams to ", num);
 
     if (numStreams != num)
     {
@@ -70,7 +70,7 @@ void Headstage::setNumStreams(int num)
 void Headstage::setChannelsPerStream(int nchan)
 {
 
-    std::cout << "Headstage " << prefix << " setting channels per stream to " << nchan << std::endl;
+    //LOGD("Headstage ", prefix, " setting channels per stream to ", nchan);
 
     if (channelsPerStream != nchan)
     {
@@ -89,7 +89,7 @@ void Headstage::setFirstStreamIndex(int streamIndex_)
 void Headstage::setFirstChannel(int channelIndex)
 {
 
-    std::cout << "Headstage " << prefix << " setting first channel to " << channelIndex << std::endl;
+    //LOGD("Headstage ", prefix, " setting first channel to ", channelIndex);
 
     if (firstChannelIndex != channelIndex)
     {
@@ -195,8 +195,6 @@ void Headstage::setImpedances(Impedances& impedances)
 
     for (int i = 0; i < impedances.streams.size(); i++)
     {
-        std::cout << impedances.streams[i] << " : " << streamIndex << std::endl;
-
         if (impedances.streams[i] == streamIndex)
         {
             impedanceMagnitudes.add(impedances.magnitudes[i]);

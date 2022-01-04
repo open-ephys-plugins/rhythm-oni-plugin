@@ -41,8 +41,10 @@ namespace RhythmNode
     {
     public:
 
+        /** Constructor */
         IntanRecordController(SourceNode* sn) : DeviceThread(sn, RHD_RECORDING_CONTROLLER) { }
 
+        /** Destructor */
         ~IntanRecordController() { }
     };
 }

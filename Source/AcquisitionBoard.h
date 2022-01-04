@@ -41,8 +41,10 @@ namespace RhythmNode
     {
     public:
 
+        /** Constructor */
         AcquisitionBoard(SourceNode* sn) : DeviceThread(sn, ACQUISITION_BOARD) { }
 
+        /** Destructor */
         ~AcquisitionBoard() { }
     };
 }

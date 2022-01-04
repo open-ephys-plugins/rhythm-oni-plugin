@@ -216,7 +216,7 @@ void DeviceEditor::measureImpedance()
 void DeviceEditor::saveImpedance(File& file)
 {
    
-    std::cout << "Saving impedances to " << file.getFullPathName() << std::endl;
+    LOGD("Saving impedances to ", file.getFullPathName());
     
     board->saveImpedances(file);
 }
@@ -328,13 +328,13 @@ void DeviceEditor::buttonClicked(Button* button)
     else if (button == auxButton && !acquisitionIsActive)
     {
         board->enableAuxs(button->getToggleState());
-        std::cout << "AUX Button toggled" << "\n";
+        LOGD("AUX Button toggled");
         CoreServices::updateSignalChain(this);
     }
     else if (button == adcButton && !acquisitionIsActive)
     {
         board->enableAdcs(button->getToggleState());
-        std::cout << "ADC Button toggled" << "\n";
+        LOGD("ADC Button toggled");
         CoreServices::updateSignalChain(this);
 
     }
@@ -344,7 +344,7 @@ void DeviceEditor::buttonClicked(Button* button)
     }
     else if (button == dspoffsetButton && !acquisitionIsActive)
     {
-        std::cout << "DSP offset " << button->getToggleState() << "\n";
+        LOGD("DSP offset ", button->getToggleState());
         board->setDSPOffset(button->getToggleState());
     }
     else if (button == ledButton)
@@ -521,8 +521,8 @@ void BandwidthInterface::labelTextChanged(Label* label)
 
             actualUpperBandwidth = board->setUpperBandwidth(requestedValue);
 
-            std::cout << "Setting Upper Bandwidth to " << requestedValue << "\n";
-            std::cout << "Actual Upper Bandwidth:  " <<  actualUpperBandwidth  << "\n";
+            LOGD("Setting Upper Bandwidth to ", requestedValue);
+            LOGD("Actual Upper Bandwidth:  ", actualUpperBandwidth);
             label->setText(String(round(actualUpperBandwidth*10.f)/10.f), dontSendNotification);
 
         }
@@ -543,8 +543,8 @@ void BandwidthInterface::labelTextChanged(Label* label)
 
             actualLowerBandwidth = board->setLowerBandwidth(requestedValue);
 
-            std::cout << "Setting Lower Bandwidth to " << requestedValue << "\n";
-            std::cout << "Actual Lower Bandwidth:  " <<  actualLowerBandwidth  << "\n";
+            LOGD("Setting Lower Bandwidth to ", requestedValue);
+            LOGD("Actual Lower Bandwidth:  ", actualLowerBandwidth);
 
             label->setText(String(round(actualLowerBandwidth*10.f)/10.f), dontSendNotification);
         }
@@ -648,7 +648,7 @@ void SampleRateInterface::comboBoxChanged(ComboBox* cb)
         {
             board->setSampleRate(cb->getSelectedId()-1);
 
-            std::cout << "Setting sample rate to index " << cb->getSelectedId()-1 << "\n";
+            LOGD("Setting sample rate to index ", cb->getSelectedId() - 1);
 
             CoreServices::updateSignalChain(editor);
         }
@@ -782,7 +782,6 @@ void HeadstageOptionsInterface::buttonClicked(Button* button)
     if (!(editor->acquisitionIsActive) && board->foundInputSource())
     {
 
-        //std::cout << "Acquisition is not active" << "\n";
         if ((button == hsButton1) && (board->getChannelsInHeadstage(hsNumber1) == 32))
         {
             if (channelsOnHs1 == 32)
@@ -790,13 +789,8 @@ void HeadstageOptionsInterface::buttonClicked(Button* button)
             else
                 channelsOnHs1 = 32;
 
-            //std::cout << "HS1 has " << channelsOnHs1 << " channels." << "\n";
-
             hsButton1->setLabel(String(channelsOnHs1));
             board->setNumChannels(hsNumber1, channelsOnHs1);
-
-            //board->updateChannels();
-            //editor->updateSettings();
 
         }
         else if ((button == hsButton2) && (board->getChannelsInHeadstage(hsNumber2) == 32))
@@ -808,7 +802,6 @@ void HeadstageOptionsInterface::buttonClicked(Button* button)
 
             hsButton2->setLabel(String(channelsOnHs2));
             board->setNumChannels(hsNumber2, channelsOnHs2);
-            //editor->updateSettings();
         }
 
         CoreServices::updateSignalChain(editor);
@@ -885,7 +878,7 @@ void AudioInterface::labelTextChanged(Label* label)
 
             actualNoiseSlicerLevel = board->setNoiseSlicerLevel(requestedValue);
 
-            std::cout << "Setting Noise Slicer Level to " << requestedValue << "\n";
+            LOGD("Setting Noise Slicer Level to ", requestedValue);
             label->setText(String((roundFloatToInt)(actualNoiseSlicerLevel)), dontSendNotification);
 
         }
@@ -962,7 +955,7 @@ void ClockDivideInterface::labelTextChanged(Label* label)
             actualDivideRatio = board->setClockDivider(requestedValue);
             lastDivideRatioString = String(actualDivideRatio);
 
-            std::cout << "Setting clock divide ratio to " << actualDivideRatio << "\n";
+            LOGD("Setting clock divide ratio to ", actualDivideRatio);
             label->setText(lastDivideRatioString, dontSendNotification);
         }
     }
@@ -1017,8 +1010,8 @@ void DSPInterface::labelTextChanged(Label* label)
 
             actualDspCutoffFreq = board->setDspCutoffFreq(requestedValue);
 
-            std::cout << "Setting DSP Cutoff Freq to " << requestedValue << "\n";
-            std::cout << "Actual DSP Cutoff Freq:  " <<  actualDspCutoffFreq  << "\n";
+            LOGD("Setting DSP Cutoff Freq to ", requestedValue);
+            LOGD("Actual DSP Cutoff Freq:  ", actualDspCutoffFreq);
             label->setText(String(round(actualDspCutoffFreq*10.f)/10.f), dontSendNotification);
         }
     }
