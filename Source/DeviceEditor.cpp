@@ -45,7 +45,14 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
 {
     canvas = nullptr;
     desiredWidth = 340;
-    tabText = "FPGA";
+
+    if (board->boardType == ACQUISITION_BOARD)
+        tabText = "Acq Board";
+    else if (board->boardType == INTAN_RHD_USB)
+        tabText = "Intan USB";
+    else if (board->boardType == RHD_RECORDING_CONTROLLER)
+        tabText = "RHD Controller";
+
     measureWhenRecording = false;
     saveImpedances = false;
 
