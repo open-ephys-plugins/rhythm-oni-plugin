@@ -52,35 +52,31 @@ namespace AcqBoardOutputNamespace {
         return editor.get();
     }
 
-    void AcqBoardOutput::handleEvent(const EventChannel* eventInfo, const MidiMessage& event, int sampleNum)
+    void AcqBoardOutput::handleTTLEvent(TTLEventPtr event)
     {
-        if (Event::getEventType(event) == EventChannel::TTL)
+        
+        const int eventBit = event->getLine() + 1;
+        DataStream* stream = getDataStream(event->getStreamId());
+
+        if (eventBit == int((*stream)["gate_bit"]))
         {
-            TTLEventPtr ttl = TTLEvent::deserialize(event, eventInfo);
+            if (event->getState())
+                gateIsOpen = true;
+            else
+                gateIsOpen = false;
+        }
 
-            const int eventBit = ttl->getBit() + 1;
-            DataStream* stream = getDataStream(ttl->getStreamId());
-
-            if (eventBit == int((*stream)["gate_bit"]))
+        if (gateIsOpen)
+        {
+            if (eventBit == int((*stream)["input_bit"]))
             {
-                if (ttl->getState())
-                    gateIsOpen = true;
-                else
-                    gateIsOpen = false;
-            }
 
-            if (gateIsOpen)
-            {
-                if (eventBit == int((*stream)["input_bit"]))
+                if (event->getState())
                 {
-
-                    if (ttl->getState())
-                    {
-                        broadcastMessage("ACQBOARD TRIGGER "
-                            + (*stream)["output_bit"].toString()
-                            + " "
-                            + (*stream)["event_duration"].toString());
-                    }
+                    broadcastMessage("ACQBOARD TRIGGER "
+                        + (*stream)["output_bit"].toString()
+                        + " "
+                        + (*stream)["event_duration"].toString());
                 }
             }
         }

@@ -50,7 +50,7 @@ namespace AcqBoardOutputNamespace {
         void process(AudioBuffer<float>& buffer) override;
 
         /** Convenient interface for responding to incoming events. */
-        void handleEvent(const EventChannel* eventInfo, const MidiMessage& event, int sampleNum) override;
+        void handleTTLEvent(TTLEventPtr event) override;
 
         /** Creates the AcqBoardOutputEditor. */
         AudioProcessorEditor* createEditor() override;
