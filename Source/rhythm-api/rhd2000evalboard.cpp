@@ -73,30 +73,39 @@ int Rhd2000EvalBoard::open(const char* libname)
 //                "Make sure this DLL is in the application start directory." << std::endl;
 //        return -1;
 //    }
+
     okFrontPanelDLL_GetVersion(dll_date, dll_time);
+
     std::cout << std::endl << "FrontPanel DLL loaded.  Built: " << dll_date << "  " << dll_time << std::endl;
 
     dev = new okCFrontPanel;
 
     std::cout << std::endl << "Scanning USB for Opal Kelly devices..." << std::endl << std::endl;
-    nDevices = dev->GetDeviceCount();
+
+    nDevices = dev->GetDeviceCount(); // slow
+
     std::cout << "Found " << nDevices << " Opal Kelly device" << ((nDevices == 1) ? "" : "s") <<
             " connected:" << std::endl;
+
     for (i = 0; i < nDevices; ++i) {
         std::cout << "  Device #" << i + 1 << ": Opal Kelly " <<
                 opalKellyModelName(dev->GetDeviceListModel(i)).c_str() <<
                 " with serial number " << dev->GetDeviceListSerial(i).c_str() << std::endl;
     }
+
     std::cout << std::endl;
 
 	for (i = 0; i < nDevices; ++i)
 	{
         okCFrontPanel::BoardModel model = dev->GetDeviceListModel(i);
-		if (model == OK_PRODUCT_XEM6010LX45 || model == OK_PRODUCT_XEM6310LX45) //the two models we use
+
+        if (model == OK_PRODUCT_XEM6010LX45 || model == OK_PRODUCT_XEM6310LX45) //the two models we use
 		{
 			serialNumber = serialNumber = dev->GetDeviceListSerial(i);
-			std::cout << "Trying to open device with serial " << serialNumber.c_str() << std::endl;
-			if (dev->OpenBySerial(serialNumber) == okCFrontPanel::NoError) 
+
+            std::cout << "Trying to open device with serial " << serialNumber.c_str() << std::endl;
+
+            if (dev->OpenBySerial(serialNumber) == okCFrontPanel::NoError) //
 			{
 				std::cout << "Device opened" << std::endl;
 				if (model == OK_PRODUCT_XEM6310LX45)

@@ -41,10 +41,9 @@ inline double round(double x)
 
 DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
                              DeviceThread* board_)
-    : VisualizerEditor(parentNode), board(board_)
+    : VisualizerEditor(parentNode, "tabText", 340), board(board_)
 {
     canvas = nullptr;
-    desiredWidth = 340;
 
     if (board->boardType == ACQUISITION_BOARD)
         tabText = "Acq Board";
@@ -222,9 +221,9 @@ void DeviceEditor::measureImpedance()
 
 void DeviceEditor::saveImpedance(File& file)
 {
-   
+
     LOGD("Saving impedances to ", file.getFullPathName());
-    
+
     board->saveImpedances(file);
 }
 
@@ -272,10 +271,10 @@ void DeviceEditor::channelStateChanged(Array<int> newChannels)
 
     if (newChannels.size() > 0)
     {
-        selectedChannel = newChannels[0];   
+        selectedChannel = newChannels[0];
     }
-        
-    
+
+
     board->setDACchannel(int(activeAudioChannel), selectedChannel);
 
     if (selectedChannel > -1)
@@ -288,7 +287,7 @@ void DeviceEditor::channelStateChanged(Array<int> newChannels)
         electrodeButtons[int(activeAudioChannel)]->setChannelNum(selectedChannel);
         electrodeButtons[int(activeAudioChannel)]->setToggleState(false, dontSendNotification);
     }
-        
+
 
 }
 
@@ -402,7 +401,7 @@ void DeviceEditor::saveVisualizerEditorParameters(XmlElement* xml)
     xml->setAttribute("auto_measure_impedances",measureWhenRecording);
     xml->setAttribute("LEDs", ledButton->getToggleState());
     xml->setAttribute("ClockDivideRatio", clockInterface->getClockDivideRatio());
-    
+
     for (int i = 0; i < 8; i++)
     {
         XmlElement* adc = xml->createNewChildElement("ADCRANGE");
@@ -422,7 +421,7 @@ void DeviceEditor::loadVisualizerEditorParameters(XmlElement* xml)
     bandwidthInterface->setUpperBandwidth(xml->getDoubleAttribute("HighCut"));
     auxButton->setToggleState(xml->getBoolAttribute("AUXsOn"), sendNotification);
     adcButton->setToggleState(xml->getBoolAttribute("ADCsOn"), sendNotification);
-    
+
     audioInterface->setNoiseSlicerLevel(xml->getIntAttribute("NoiseSlicer"));
     ttlSettleCombo->setSelectedId(xml->getIntAttribute("TTLFastSettle"));
     dacTTLButton->setToggleState(xml->getBoolAttribute("DAC_TTL"), sendNotification);
@@ -466,7 +465,7 @@ Visualizer* DeviceEditor::createNewCanvas()
     GenericProcessor* processor = (GenericProcessor*) getProcessor();
 
     canvas = new ChannelCanvas(board, this);
-    
+
     return canvas;
 }
 
