@@ -1841,7 +1841,7 @@ bool DeviceThread::updateBuffer()
                 index += 16; // skip ADC chans (8 * 2 bytes)
             }
 
-            uint64 ttlEventWord = *(uint64*)(bufferPtr + index);
+            uint64 ttlEventWord = *(uint64*)(bufferPtr + index) & 65535;
 
             index += 4;
 
