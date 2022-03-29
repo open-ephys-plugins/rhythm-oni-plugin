@@ -32,30 +32,30 @@ namespace AcqBoardOutputNamespace {
         : GenericEditor(parentNode)
 
     {
-        desiredWidth = 200;
+        desiredWidth = 250;
 
         board = (AcqBoardOutput*)parentNode;
 
-        addComboBoxParameterEditor("output_bit", 10, 10);
-        addComboBoxParameterEditor("input_bit", 10, 30);
-        addComboBoxParameterEditor("gate_bit", 10, 50);
+        addComboBoxParameterEditor("ttl_out", 10, 30);
+        addComboBoxParameterEditor("trigger_line", 10, 76);
+        addComboBoxParameterEditor("gate_line", 100, 76);
         addTextBoxParameterEditor("event_duration", 100, 30);
 
-        //triggerButton = new UtilityButton("Trigger", Font("Small Text", 13, Font::plain));
-        //triggerButton->setBounds(80, 35, 80, 30);
-        //triggerButton->addListener(this);
-        //addAndMakeVisible(triggerButton);
+        triggerButton = std::make_unique<UtilityButton>("Trigger", Font("Small Text", 13, Font::plain));
+        triggerButton->setBounds(190, 95, 55, 25);
+        triggerButton->addListener(this);
+        addAndMakeVisible(triggerButton.get());
 
     }
 
-    /*void AcqBoardOutputEditor::buttonClicked(Button* button)
+    void AcqBoardOutputEditor::buttonClicked(Button* button)
     {
 
-        if (button == triggerButton)
+        if (button == triggerButton.get())
         {
             AcqBoardOutput* processor = (AcqBoardOutput*)getProcessor();
-            processor->triggerOutput();
+            processor->triggerOutput(getCurrentStream());
         }
-    }*/
+    }
 
 }

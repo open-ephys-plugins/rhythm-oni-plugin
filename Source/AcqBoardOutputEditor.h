@@ -39,7 +39,8 @@ namespace AcqBoardOutputNamespace {
 
     class AcqBoardOutput;
 
-    class AcqBoardOutputEditor : public GenericEditor
+    class AcqBoardOutputEditor : public GenericEditor,
+                                 public Button::Listener
 
     {
     public:
@@ -51,10 +52,11 @@ namespace AcqBoardOutputNamespace {
         ~AcqBoardOutputEditor() { }
 
         /** Responds to trigger button press*/
+        void buttonClicked(Button* button);
 
     private:
 
-        //ScopedPointer<UtilityButton> triggerButton;
+        std::unique_ptr<UtilityButton> triggerButton;
 
         AcqBoardOutput* board;
 

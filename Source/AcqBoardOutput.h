@@ -55,6 +55,12 @@ namespace AcqBoardOutputNamespace {
         /** Creates the AcqBoardOutputEditor. */
         AudioProcessorEditor* createEditor() override;
 
+        /** Manually triggers output when editor button is clicked */
+        void triggerOutput(uint16 streamId);
+
+        /** Responds to change in parameter trigger value */
+        void parameterValueChanged(Parameter*);
+
     private:
 
         bool gateIsOpen;

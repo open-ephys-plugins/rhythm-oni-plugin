@@ -34,14 +34,15 @@ namespace AcqBoardOutputNamespace {
         , gateIsOpen(true)
     {
 
-        addIntParameter(Parameter::STREAM_SCOPE, "output_bit", "The digital output to trigger", 1, 1, 8);
-        addIntParameter(Parameter::STREAM_SCOPE, "input_bit", "The TTL bit for triggering output", 1, 1, 16);
-        addIntParameter(Parameter::STREAM_SCOPE, "gate_bit", "The TTL bit for gating the output", 1, 1, 16);
-        
+        addIntParameter(Parameter::STREAM_SCOPE, "ttl_out", "The digital output to trigger", 1, 1, 8);
+        addIntParameter(Parameter::STREAM_SCOPE, "trigger_line", "The TTL bit for triggering output", 1, 1, 16);
+        addIntParameter(Parameter::STREAM_SCOPE, "gate_line", "The TTL bit for gating the output", 0, 0, 16);
+        addBooleanParameter(Parameter::STREAM_SCOPE, "trigger", "Manually triggers output", false);
+
         addFloatParameter(
-            Parameter::STREAM_SCOPE, 
-            "event_duration", 
-            "The amount of time (in ms) the output stays high", 
+            Parameter::STREAM_SCOPE,
+            "event_duration",
+            "The amount of time (in ms) the output stays high",
             500, 100, 2000, 1.0);
     }
 
@@ -52,31 +53,62 @@ namespace AcqBoardOutputNamespace {
         return editor.get();
     }
 
+    void AcqBoardOutput::triggerOutput(uint16 streamId)
+    {
+        DataStream* stream = getDataStream(streamId);
+
+        stream->getParameter("trigger")->setNextValue(true);
+    }
+
+    void AcqBoardOutput::parameterValueChanged(Parameter* param)
+    {
+        if (param->getName().equalsIgnoreCase("trigger"))
+        {
+            DataStream* stream = getDataStream(param->getStreamId());
+
+            broadcastMessage("ACQBOARD TRIGGER "
+                        + (*stream)["ttl_out"].toString()
+                        + " "
+                        + (*stream)["event_duration"].toString());
+
+        } else if (param->getName().equalsIgnoreCase("gate_line"))
+        {
+
+            IntParameter* p = (IntParameter*) param;
+            if (p->getIntValue() > 0)
+                gateIsOpen = false;
+            else
+                gateIsOpen = true;
+        }
+    }
+
     void AcqBoardOutput::handleTTLEvent(TTLEventPtr event)
     {
-        
+
         const int eventBit = event->getLine() + 1;
         DataStream* stream = getDataStream(event->getStreamId());
 
-        if (eventBit == int((*stream)["gate_bit"]))
+        //std::cout << "Event on line " << eventBit << " for stream " << stream->getStreamId() << std::endl;
+
+        if (eventBit == int((*stream)["gate_line"]))
         {
-            if (event->getState())
-                gateIsOpen = true;
-            else
-                gateIsOpen = false;
+            gateIsOpen = event->getState();
         }
 
         if (gateIsOpen)
         {
-            if (eventBit == int((*stream)["input_bit"]))
+            if (eventBit == int((*stream)["trigger_line"]))
             {
 
                 if (event->getState())
                 {
-                    broadcastMessage("ACQBOARD TRIGGER "
-                        + (*stream)["output_bit"].toString()
+                    String msg = "ACQBOARD TRIGGER "
+                        + (*stream)["ttl_out"].toString()
                         + " "
-                        + (*stream)["event_duration"].toString());
+                        + (*stream)["event_duration"].toString();
+                    broadcastMessage(msg);
+
+                    //std::cout << "Sending message " << msg << std::endl;
                 }
             }
         }

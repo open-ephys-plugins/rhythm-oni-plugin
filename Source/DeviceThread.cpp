@@ -168,9 +168,11 @@ std::unique_ptr<GenericEditor> DeviceThread::createEditor(SourceNode* sn)
     return editor;
 }
 
-void DeviceThread::handleMessage(String msg)
+void DeviceThread::handleBroadcastMessage(String msg)
 {
     StringArray parts = StringArray::fromTokens(msg, " ", "");
+
+    //std::cout << "Received " << msg << std::endl;
 
     if (parts[0].equalsIgnoreCase("ACQBOARD"))
     {
@@ -515,7 +517,7 @@ void DeviceThread::initializeBoard()
         adcChannelNames.add("ADC" + String(i + 1));
         ttlLineNames.add("TTL" + String(i + 1));
     }
-   
+
 }
 
 void DeviceThread::scanPorts()
@@ -793,7 +795,7 @@ void DeviceThread::scanPorts()
     }
 
     setSampleRate(settings.savedSampleRateIndex); // restore saved sample rate
-    
+
     //updateRegisters();
     //newScan = true;
 }
@@ -1008,7 +1010,7 @@ void DeviceThread::saveImpedances(File& file)
 
         xml->writeTo(file);
     }
-   
+
 }
 
 String DeviceThread::getChannelName(int i) const
@@ -1070,7 +1072,7 @@ int DeviceThread::getHeadstageChannels (int hsNum) const
 
 int DeviceThread::getNumChannels()
 {
-    int totalChannels = getNumDataOutputs(ContinuousChannel::ELECTRODE) 
+    int totalChannels = getNumDataOutputs(ContinuousChannel::ELECTRODE)
            + getNumDataOutputs(ContinuousChannel::AUX)
            + getNumDataOutputs(ContinuousChannel::ADC);
 
@@ -1190,11 +1192,11 @@ double DeviceThread::getDspCutoffFreq() const
 
 void DeviceThread::setDSPOffset(bool state)
 {
-    
+
     impedanceThread->stopThreadSafely();
 
     settings.dsp.enabled = state;
-    
+
     updateRegisters();
 }
 
@@ -1208,7 +1210,7 @@ void DeviceThread::setTTLoutputMode(bool state)
 void DeviceThread::setDAChpf(float cutoff, bool enabled)
 {
     settings.desiredDAChpf = cutoff;
-    
+
     settings.desiredDAChpfState = enabled;
 
     updateSettingsDuringAcquisition = true;
@@ -1217,7 +1219,7 @@ void DeviceThread::setDAChpf(float cutoff, bool enabled)
 void DeviceThread::setFastTTLSettle(bool state, int channel)
 {
     settings.fastTTLSettleEnabled = state;
-    
+
     settings.fastSettleTTLChannel = channel;
 
     updateSettingsDuringAcquisition = true;
@@ -1838,14 +1840,14 @@ bool DeviceThread::updateBuffer()
             {
                 index += 16; // skip ADC chans (8 * 2 bytes)
             }
-            
+
             uint64 ttlEventWord = *(uint64*)(bufferPtr + index);
 
             index += 4;
 
-            sourceBuffers[0]->addToBuffer(thisSample, 
-                                          &timestamp, 
-                                          &ttlEventWord, 
+            sourceBuffers[0]->addToBuffer(thisSample,
+                                          &timestamp,
+                                          &ttlEventWord,
                                           1);
         }
 
@@ -2075,9 +2077,9 @@ short DeviceThread::getAdcRange(int channel) const
 
 void DeviceThread::runImpedanceTest()
 {
-    
+
     impedanceThread->stopThreadSafely();
-    
+
     impedanceThread->runThread();
 
 }
