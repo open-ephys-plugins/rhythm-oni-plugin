@@ -1738,6 +1738,7 @@ bool DeviceThread::updateBuffer()
 {
     //int chOffset;
     unsigned char* bufferPtr;
+    double ts;
     //cout << "Number of 16-bit words in FIFO: " << evalBoard->numWordsInFifo() << endl;
     //cout << "Block size: " << blockSize << endl;
 
@@ -1847,6 +1848,7 @@ bool DeviceThread::updateBuffer()
 
             sourceBuffers[0]->addToBuffer(thisSample,
                                           &timestamp,
+                                          &ts,
                                           &ttlEventWord,
                                           1);
         }
