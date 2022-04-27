@@ -62,6 +62,7 @@ ChannelList::ChannelList(DeviceThread* board_, DeviceEditor* editor_) :
     saveImpedanceButton->setRadius(3);
     saveImpedanceButton->setBounds(430,10,150,25);
     saveImpedanceButton->addListener(this);
+    saveImpedanceButton->setEnabled(false);
     addAndMakeVisible(saveImpedanceButton);
 
     gains.clear();
@@ -87,6 +88,7 @@ void ChannelList::buttonClicked(Button* btn)
     if (btn == impedanceButton)
     {
         editor->measureImpedance();
+        saveImpedanceButton->setEnabled(true);
     }
     else if (btn == saveImpedanceButton)
     {
@@ -107,6 +109,12 @@ void ChannelList::buttonClicked(Button* btn)
 void ChannelList::update()
 {
 
+    if (!board->foundInputSource())
+    {
+        disableAll();
+        return;
+    }
+
     staticLabels.clear();
     channelComponents.clear();
 
@@ -115,7 +123,7 @@ void ChannelList::update()
     Array<const Headstage*> headstages = board->getConnectedHeadstages();
 
     int column = -1;
-    
+
     maxChannels = 0;
 
     numberingScheme->setSelectedId(board->getNamingScheme(), dontSendNotification);
@@ -136,13 +144,13 @@ void ChannelList::update()
 
         for (int ch = 0; ch < hs->getNumActiveChannels(); ch++)
         {
-            ChannelComponent* comp = 
+            ChannelComponent* comp =
                 new ChannelComponent(
-                    this, 
-                    ch, 
-                    0, 
-                    hs->getChannelName(ch), 
-                    gains, 
+                    this,
+                    ch,
+                    0,
+                    hs->getChannelName(ch),
+                    gains,
                     ContinuousChannel::ELECTRODE);
 
             comp->setBounds(10 + column * columnWidth, 70 + ch * 22, columnWidth, 22);
