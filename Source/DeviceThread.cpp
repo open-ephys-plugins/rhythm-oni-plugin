@@ -856,9 +856,9 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
 
     DataStream::Settings dataStreamSettings
     {
-        "Device Data",
-        "description",
-        "identifier",
+        "Rhythm Data",
+        "Continuous and event data from a device running Rhythm FPGA firmware",
+        "rhythm-fpga-device.data",
 
         static_cast<float>(evalBoard->getSampleRate())
 
@@ -882,8 +882,8 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
                 ContinuousChannel::Settings channelSettings{
                     ContinuousChannel::ELECTRODE,
                     headstage->getChannelName(ch),
-                    "description",
-                    "identifier",
+                    "Headstage channel from a Rhythm FPGA device",
+                    "rhythm-fpga-device.continuous.headstage",
 
                     0.195,
 
@@ -909,8 +909,8 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
                     ContinuousChannel::Settings channelSettings{
                         ContinuousChannel::AUX,
                         headstage->getStreamPrefix() + "_AUX" + String(ch + 1),
-                        "description",
-                        "identifier",
+                        "Aux input channel from a Rhythm FPGA device",
+                        "rhythm-fpga-device.continuous.aux",
 
                         0.0000374,
 
@@ -935,8 +935,8 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
             ContinuousChannel::Settings channelSettings{
                 ContinuousChannel::ADC,
                 name,
-                "description",
-                "identifier",
+                "ADC input channel from a Rhythm FPGA device",
+                "rhythm-fpga-device.continuous.adc",
 
                 getAdcBitVolts(ch),
 
@@ -951,9 +951,9 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
 
     EventChannel::Settings settings{
             EventChannel::Type::TTL,
-            "name",
-            "description",
-            "identifier",
+            "Rhythm FPGA TTL Input",
+            "Events on digital input lines of a Rhythm FPGA device",
+            "rhythm-fpga-device.events",
             stream,
             8
     };

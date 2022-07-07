@@ -167,6 +167,11 @@ void ChannelList::update()
         }
     }
 
+    if (column == -1) // no headstages found
+    {
+        impedanceButton->setEnabled(false);
+    }
+
     //if (board->enableAdcs())
     //{
         // create ADC channel interface
