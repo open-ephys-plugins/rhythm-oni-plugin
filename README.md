@@ -93,4 +93,4 @@ Running the `ALL_BUILD` scheme will compile the plugin; running the `INSTALL` sc
 
 ## Attribution
 
-Developed by Jonathan Newman ([@jonnew](https://github.com/jonnew)).
+This plugin has been collaboratively developed by Josh Siegle and Aarón Cuevas López. It is currently being maintained at the Allen Institute.
