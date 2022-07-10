@@ -117,6 +117,7 @@ void ChannelList::update()
 
     staticLabels.clear();
     channelComponents.clear();
+    impedanceButton->setEnabled(true);
 
     const int columnWidth = 250;
 
@@ -165,6 +166,7 @@ void ChannelList::update()
             channelComponents.add(comp);
             addAndMakeVisible(comp);
         }
+
     }
 
     if (column == -1) // no headstages found

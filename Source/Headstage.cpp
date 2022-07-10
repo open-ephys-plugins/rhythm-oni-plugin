@@ -56,7 +56,7 @@ int Headstage::getNumStreams() const
 void Headstage::setNumStreams(int num)
 {
 
-    //LOGD("Headstage ", prefix, " setting num streams to ", num);
+    LOGD("Headstage ", prefix, " setting num streams to ", num);
 
     if (numStreams != num)
     {
@@ -70,7 +70,7 @@ void Headstage::setNumStreams(int num)
 void Headstage::setChannelsPerStream(int nchan)
 {
 
-    //LOGD("Headstage ", prefix, " setting channels per stream to ", nchan);
+    LOGD("Headstage ", prefix, " setting channels per stream to ", nchan);
 
     if (channelsPerStream != nchan)
     {
@@ -89,7 +89,7 @@ void Headstage::setFirstStreamIndex(int streamIndex_)
 void Headstage::setFirstChannel(int channelIndex)
 {
 
-    //LOGD("Headstage ", prefix, " setting first channel to ", channelIndex);
+    LOGD("Headstage ", prefix, " setting first channel to ", channelIndex);
 
     if (firstChannelIndex != channelIndex)
     {
@@ -139,10 +139,18 @@ bool Headstage::isConnected() const
 
 String Headstage::getChannelName(int ch) const
 {
-    if (ch > -1 && ch < channelNames.size())
-        return channelNames[ch];
 
-    return " ";
+    String name;
+
+    if (ch > -1 && ch < channelNames.size())
+        name = channelNames[ch];
+    else
+        name = " ";
+
+    if (ch == 0)
+      LOGD("Headstage ", prefix, " channel ", ch, " name: ", name);
+
+    return name;
 }
 
 String Headstage::getStreamPrefix() const

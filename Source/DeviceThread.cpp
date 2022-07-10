@@ -536,6 +536,11 @@ void DeviceThread::scanPorts()
     int delay, hs, id;
     int register59Value;
 
+    for (auto headstage : headstages)
+    {
+        headstage->setNumStreams(0); // reset stream count
+    }
+
     Rhd2000EvalBoard::BoardDataSource initStreamPorts[8] =
     {
         Rhd2000EvalBoard::PortA1,
