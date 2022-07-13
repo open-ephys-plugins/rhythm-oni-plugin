@@ -17,14 +17,13 @@ jobs:
     - name: setup
       run: |
         cd ../..
-        git clone https://github.com/open-ephys/plugin-GUI.git --branch development-juce6
+        git clone https://github.com/open-ephys/plugin-GUI.git --branch main
         cd plugin-GUI/Build && cmake -G "Xcode" ..
     - name: build
       run: |
         cd Build
         cmake -G "Xcode" ..
         xcodebuild -configuration Release
-        install_name_tool -change @loader_path/../Frameworks/libokFrontPanel.dylib @rpath/libokFrontPanel.dylib Release/rhythm-plugins.bundle/Contents/MacOS/rhythm-plugins
 #    - name: test
 #      run: cd build && ctest
     - name: deploy
