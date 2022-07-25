@@ -16,18 +16,17 @@ Plugins for the following devices are coming soon:
 
 ## Installation
 
-These plugins can be added via the Open Ephys GUI's built-in Plugin Installer. Press **ctrl-P** or **⌘P** to open the Plugin Installer, browse to "Rhythm Plugins," and click the "Install" button. The Acquisition Board, Intan RHD USB, Acq. Board Output plugins should now be available to use.
+These plugins can be added via the Open Ephys GUI's built-in Plugin Installer. Press **ctrl-P** or **⌘P** to open the Plugin Installer, browse to "Rhythm Plugins," and click the "Install" button. The Acquisition Board, Intan RHD USB, and Acq. Board Output plugins should now be available to use.
 
 ## Usage
 
-(link to documentation)
-
+Instructions for using the Rhythm Plugins are available [here](https://open-ephys.github.io/gui-docs/User-Manual/Plugins/Rhythm-Plugins.html).
 
 ## Building from source
 
 First, follow the instructions on [this page](https://open-ephys.github.io/gui-docs/Developer-Guide/Compiling-the-GUI.html) to build the Open Ephys GUI.
 
-**Important:** This plugin is intended for use with the pre-release core application, version 0.6.0. The GUI should be compiled from the [`development-juce6`](https://github.com/open-ephys/plugin-gui/tree/development-juce6) branch, rather than the `master` branch.
+**Important:** This plugin is intended for use with the latest version of the GUI (0.6.0 and higher). The GUI should be compiled from the [`main`](https://github.com/open-ephys/plugin-gui/tree/main) branch, rather than the former `master` branch.
 
 Then, clone this repository into a directory at the same level as the `plugin-GUI`, e.g.:
  
@@ -72,7 +71,7 @@ make -j
 make install
 ```
 
-This will build the plugin and copy the `.so` file into the GUI's `plugins` directory. The next time you launch the GUI compiled version of the GUI, the new plugins should be available.
+This will build the plugin and copy the `.so` file into the GUI's `plugins` directory. The next time you launch the compiled version of the GUI, the new plugins should be available.
 
 
 ### macOS
