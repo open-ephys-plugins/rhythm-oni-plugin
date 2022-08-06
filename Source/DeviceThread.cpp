@@ -77,7 +77,7 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
     int maxNumHeadstages = (boardType == RHD_RECORDING_CONTROLLER) ? 16 : 8;
 
     for (int i = 0; i < maxNumHeadstages; i++)
-        headstages.add(new Headstage(static_cast<Rhd2000EvalBoard::BoardDataSource>(i)));
+        headstages.add(new Headstage(static_cast<Rhd2000EvalBoard::BoardDataSource>(i), maxNumHeadstages));
 
     evalBoard = new Rhd2000EvalBoard;
 
@@ -106,13 +106,18 @@ DeviceThread::DeviceThread(SourceNode* sn, BoardType boardType_) : DataThread(sn
 
     if (openBoard(libraryFilePath))
     {
-        dataBlock = new Rhd2000DataBlock(1,evalBoard->isUSB3());
+        dataBlock = new Rhd2000DataBlock(1, evalBoard->isUSB3());
 
         // upload bitfile and restore default settings
         initializeBoard();
 
         if (evalBoard->isUSB3())
             LOGD("USB3 board mode enabled");
+
+        MAX_NUM_DATA_STREAMS = evalBoard->MAX_NUM_DATA_STREAMS;
+        MAX_NUM_HEADSTAGES = MAX_NUM_DATA_STREAMS / 2;
+
+        //std::cout << "MAX NUM STREAMS: " << MAX_NUM_DATA_STREAMS << ", MAX NUM HEADSTAGES: " << MAX_NUM_HEADSTAGES << std::endl;
 
         // automatically find connected headstages
         scanPorts(); // things would appear to run more smoothly if this were done after the editor has been created
@@ -1251,6 +1256,8 @@ bool DeviceThread::foundInputSource()
 
 bool DeviceThread::enableHeadstage(int hsNum, bool enabled, int nStr, int strChans)
 {
+    LOGD("Headstage ", hsNum, ", enabled: ", enabled, ", num streams: ", nStr, ", stream channels: ", strChans);
+    LOGD("Max num headstages: ", MAX_NUM_HEADSTAGES);
 
     if (enabled)
     {
@@ -1301,6 +1308,7 @@ void DeviceThread::updateBoardStreams()
     {
         if (i < enabledStreams.size())
         {
+            //std::cout << "Enabling stream " << i << " with source " << enabledStreams[i] << std::endl;
             evalBoard->enableDataStream(i,true);
             evalBoard->setDataSource(i,enabledStreams[i]);
         }
@@ -1741,19 +1749,15 @@ bool DeviceThread::stopAcquisition()
 
 bool DeviceThread::updateBuffer()
 {
-    //int chOffset;
     unsigned char* bufferPtr;
     double ts;
-    //cout << "Number of 16-bit words in FIFO: " << evalBoard->numWordsInFifo() << endl;
-    //cout << "Block size: " << blockSize << endl;
 
-    //LOGD( "Current number of words: " <<  evalBoard->numWordsInFifo() << " for " << blockSize );
     if (evalBoard->isUSB3() || evalBoard->numWordsInFifo() >= blockSize)
     {
         bool return_code;
 
         return_code = evalBoard->readRawDataBlock(&bufferPtr);
-        // see Rhd2000DataBlock::fillFromUsbBuffer() for an idea of data order in bufferPtr
+        // see Rhd2000DataBlock::fillFromUsbBuffer() for documentation of buffer structure
 
         int index = 0;
         int auxIndex, chanIndex;
@@ -1775,23 +1779,27 @@ bool DeviceThread::updateBuffer()
             int64 timestamp = Rhd2000DataBlock::convertUsbTimeStamp(bufferPtr, index);
             index += 4; // timestamp width
             auxIndex = index; // aux chans start at this offset
-            // skip aux channels for now
             index += 6 * numStreams; // width of the 3 aux chans
-            // copy 64 neural data channels
+
             for (int dataStream = 0; dataStream < numStreams; dataStream++)
-            {
+            {                
+                
                 int nChans = numChannelsPerDataStream[dataStream];
+
                 chanIndex = index + 2*dataStream;
+                
                 if ((chipId[dataStream] == CHIP_ID_RHD2132) && (nChans == 16)) //RHD2132 16ch. headstage
                 {
-                    chanIndex += 2 * RHD2132_16CH_OFFSET*numStreams;
+                    chanIndex += 2 * RHD2132_16CH_OFFSET * numStreams;
                 }
+                
                 for (int chan = 0; chan < nChans; chan++)
                 {
                     channel++;
-                    thisSample[channel] = float(*(uint16*)(bufferPtr + chanIndex) - 32768)*0.195f;
-                    chanIndex += 2*numStreams; // single chan width (2 bytes)
+                    thisSample[channel] = float(*(uint16*)(bufferPtr + chanIndex) - 32768) * 0.195f;
+                    chanIndex += 2 * numStreams; // single chan width (2 bytes)
                 }
+                
             }
             index += 64 * numStreams; // neural data width
             auxIndex += 2 * numStreams; // skip AuxCmd1 slots (see updateRegisters())

@@ -61,7 +61,7 @@ namespace RhythmNode
 	public:
 
 		/** Constructor */
-		Headstage(Rhd2000EvalBoard::BoardDataSource dataSource);
+		Headstage(Rhd2000EvalBoard::BoardDataSource dataSource, int MAX_NUM_HEADSTAGES);
 
 		/** Destructor*/
 		~Headstage() { }
@@ -136,6 +136,8 @@ namespace RhythmNode
 		int channelsPerStream;
 		
 		bool halfChannels;
+
+		int MAX_NUM_HEADSTAGES;
 
 		ChannelNamingScheme namingScheme;
 

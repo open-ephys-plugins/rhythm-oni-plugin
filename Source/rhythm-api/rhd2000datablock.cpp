@@ -31,6 +31,8 @@
 // Constructor.  Allocates memory for data block.
 Rhd2000DataBlock::Rhd2000DataBlock(int numDataStreams, bool usb3) : samplesPerBlock(SAMPLES_PER_DATA_BLOCK(usb3)), usb3(usb3)
 {
+
+    //std::cout << "New data block with " << numDataStreams << " streams." << std::endl;
     allocateUIntArray1D(timeStamp, samplesPerBlock);
     allocateIntArray3D(amplifierData, numDataStreams, 32, samplesPerBlock);
     allocateIntArray3D(auxiliaryData, numDataStreams, 3, samplesPerBlock);

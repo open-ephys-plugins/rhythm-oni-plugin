@@ -25,8 +25,9 @@
 
 using namespace RhythmNode;
 
-Headstage::Headstage(Rhd2000EvalBoard::BoardDataSource dataSource_) :
+Headstage::Headstage(Rhd2000EvalBoard::BoardDataSource dataSource_, int MAX_H) :
     dataSource(dataSource_),
+    MAX_NUM_HEADSTAGES(MAX_H),
     numStreams(0), 
     channelsPerStream(32), 
     halfChannels(false),

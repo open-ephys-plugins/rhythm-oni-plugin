@@ -44,9 +44,7 @@
 #define REGISTER_59_MISO_B  58
 #define RHD2132_16CH_OFFSET 8
 
-#define MAX_NUM_CHANNELS MAX_NUM_DATA_STREAMS * 35
-
-#define MAX_NUM_HEADSTAGES MAX_NUM_DATA_STREAMS / 2
+#define MAX_NUM_CHANNELS MAX_NUM_DATA_STREAMS_USB3 * 35
 
 namespace RhythmNode
 {
@@ -245,6 +243,9 @@ namespace RhythmNode
 			int ttlLine,
 			bool state);
 
+		int MAX_NUM_HEADSTAGES;
+		int MAX_NUM_DATA_STREAMS;
+
 	private:
 
 		std::queue<DigitalOutputCommand> digitalOutputCommands;
@@ -280,7 +281,7 @@ namespace RhythmNode
 		float auxBuffer[MAX_NUM_CHANNELS]; // aux inputs are only sampled every 4th sample, so use this to buffer the
 										   // samples so they can be handles just like the regular neural channels later
 
-		float auxSamples[MAX_NUM_DATA_STREAMS][3];
+		float auxSamples[MAX_NUM_DATA_STREAMS_USB3][3];
 
 		unsigned int blockSize;
 

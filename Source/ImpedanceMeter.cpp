@@ -296,7 +296,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
 
     Array<int> enabledStreams;
 
-    for (stream = 0; stream < MAX_NUM_DATA_STREAMS; ++stream)
+    for (stream = 0; stream < board->MAX_NUM_DATA_STREAMS; ++stream)
     {
         CHECK_EXIT;
 

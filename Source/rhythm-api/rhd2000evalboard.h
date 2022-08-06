@@ -26,7 +26,7 @@
 #define RHYTHM_BOARD_ID_USB3 600
 #define MAX_NUM_DATA_STREAMS_USB2 8
 #define MAX_NUM_DATA_STREAMS_USB3 16
-#define MAX_NUM_DATA_STREAMS 32
+
 #define FIFO_CAPACITY_WORDS 67108864
 
 //#define MAX_NUM_DATA_STREAMS(u3) ( u3 ? MAX_NUM_DATA_STREAMS_USB3 : MAX_NUM_DATA_STREAMS_USB2 )
@@ -177,11 +177,13 @@ public:
     void printFIFOmetrics();
     bool readRawDataBlock(unsigned char** bufferPtr, int nSamples = -1);
 
+    int MAX_NUM_DATA_STREAMS;
+
 private:
     OpalKellyLegacy::okCFrontPanel *dev;
     AmplifierSampleRate sampleRate;
     int numDataStreams; // total number of data streams currently enabled
-    int dataStreamEnabled[MAX_NUM_DATA_STREAMS]; // 0 (disabled) or 1 (enabled), set for maximum stream number
+    int dataStreamEnabled[MAX_NUM_DATA_STREAMS_USB3]; // 0 (disabled) or 1 (enabled), set for maximum stream number
     std::vector<int> cableDelay;
 
     // Buffer for reading bytes from USB interface
@@ -250,6 +252,7 @@ private:
     bool isDataClockLocked() const;
 
     bool usb3; //Open-Ephys addition for USB3 support
+
 };
 
 #endif // RHD2000EVALBOARD_H

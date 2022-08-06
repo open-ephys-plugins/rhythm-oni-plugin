@@ -46,6 +46,8 @@ Rhd2000EvalBoard::Rhd2000EvalBoard()
     dev = 0;
     usb3 = false;
 
+    MAX_NUM_DATA_STREAMS = MAX_NUM_DATA_STREAMS_USB3;
+
     for (i = 0; i < MAX_NUM_DATA_STREAMS; ++i) {
         dataStreamEnabled[i] = 0;
     }
@@ -122,6 +124,8 @@ int Rhd2000EvalBoard::open(const char* libname)
 		std::cerr << "No device could be opened.  Is one connected?" << std::endl;
 		return -2;
 	}
+
+    MAX_NUM_DATA_STREAMS = usb3 ? MAX_NUM_DATA_STREAMS_USB3 : MAX_NUM_DATA_STREAMS_USB2;
 
     // Configure the on-board PLL appropriately.
     dev->LoadDefaultPLLConfiguration();
