@@ -28,7 +28,7 @@
 
 #include <cmath>
 
-using namespace RhythmNode;
+using namespace ONIRhythmNode;
 
 #ifdef WIN32
 #if (_MSC_VER < 1800) //round doesn't exist on MSVC prior to 2013 version
@@ -45,12 +45,7 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
 {
     canvas = nullptr;
 
-    if (board->boardType == ACQUISITION_BOARD)
-        tabText = "Acq Board";
-    else if (board->boardType == INTAN_RHD_USB)
-        tabText = "Intan USB";
-    else if (board->boardType == RHD_RECORDING_CONTROLLER)
-        tabText = "RHD Controller";
+   tabText = "ONI Acq Board";
 
     measureWhenRecording = false;
     saveImpedances = false;
@@ -205,8 +200,7 @@ DeviceEditor::DeviceEditor(GenericProcessor* parentNode,
     ledButton->setTooltip("Toggle board LEDs");
     ledButton->setToggleState(true, dontSendNotification);
 
-    if (board->boardType == ACQUISITION_BOARD)
-        addAndMakeVisible(ledButton);
+    addAndMakeVisible(ledButton);
 
 }
 

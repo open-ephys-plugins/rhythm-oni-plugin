@@ -29,7 +29,7 @@
 #include "ChannelList.h"
 #include "ChannelComponent.h"
 
-namespace RhythmNode
+namespace ONIRhythmNode
 {
 
 	class DeviceThread;

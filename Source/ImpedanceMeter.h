@@ -31,14 +31,13 @@
 #include <array>
 #include <atomic>
 
-#include "rhythm-api/rhd2000evalboard.h"
+#include "rhythm-api/rhd2000ONIboard.h"
 #include "rhythm-api/rhd2000registers.h"
 #include "rhythm-api/rhd2000datablock.h"
-#include "rhythm-api/okFrontPanelDLL.h"
 
 #include "DeviceThread.h"
 
-namespace RhythmNode
+namespace ONIRhythmNode
 {
 
 	class ImpedanceMeter : public ThreadWithProgressWindow

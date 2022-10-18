@@ -31,14 +31,13 @@
 #include <array>
 #include <atomic>
 
-#include "rhythm-api/rhd2000evalboard.h"
+#include "rhythm-api/rhd2000ONIboard.h"
 #include "rhythm-api/rhd2000registers.h"
 #include "rhythm-api/rhd2000datablock.h"
-#include "rhythm-api/okFrontPanelDLL.h"
 
 #include "DeviceThread.h"
 
-namespace RhythmNode
+namespace ONIRhythmNode
 {
 
 
@@ -61,7 +60,7 @@ namespace RhythmNode
 	public:
 
 		/** Constructor */
-		Headstage(Rhd2000EvalBoard::BoardDataSource dataSource, int MAX_NUM_HEADSTAGES);
+		Headstage(Rhd2000ONIBoard::BoardDataSource dataSource, int MAX_NUM_HEADSTAGES);
 
 		/** Destructor*/
 		~Headstage() { }
@@ -106,7 +105,7 @@ namespace RhythmNode
 		bool isConnected() const;
 
 		/** Returns the BoardDataSource object for a given index*/
-		Rhd2000EvalBoard::BoardDataSource getDataStream(int index) const;
+		Rhd2000ONIBoard::BoardDataSource getDataStream(int index) const;
 
 		/** Sets the number of half-channels; mainly used for the 16-ch RHD2132 board */
 		void setHalfChannels(bool half); 
@@ -127,7 +126,7 @@ namespace RhythmNode
 		bool hasImpedanceData() const { return impedanceMagnitudes.size() > 0; }
 
 	private:
-		Rhd2000EvalBoard::BoardDataSource dataSource;
+		Rhd2000ONIBoard::BoardDataSource dataSource;
 
 		int streamIndex;
 		int firstChannelIndex;

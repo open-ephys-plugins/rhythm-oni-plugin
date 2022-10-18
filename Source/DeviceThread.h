@@ -31,10 +31,9 @@
 #include <array>
 #include <atomic>
 
-#include "rhythm-api/rhd2000evalboard.h"
+#include "rhythm-api/rhd2000ONIboard.h"
 #include "rhythm-api/rhd2000registers.h"
 #include "rhythm-api/rhd2000datablock.h"
-#include "rhythm-api/okFrontPanelDLL.h"
 
 #define CHIP_ID_RHD2132  1
 #define CHIP_ID_RHD2216  2
@@ -46,18 +45,12 @@
 
 #define MAX_NUM_CHANNELS MAX_NUM_DATA_STREAMS_USB3 * 35 + 16
 
-namespace RhythmNode
+namespace ONIRhythmNode
 {
 
 	class Headstage;
 	class ImpedanceMeter;
 
-	enum BoardType
-	{
-		ACQUISITION_BOARD,
-		INTAN_RHD_USB,
-		RHD_RECORDING_CONTROLLER
-	};
 
 	enum ChannelNamingScheme
 	{
@@ -85,7 +78,7 @@ namespace RhythmNode
 
 	public:
 		/** Constructor; must specify the type of board used */
-		DeviceThread(SourceNode* sn, BoardType boardType);
+		DeviceThread(SourceNode* sn);
 
 		/** Destructor */
 		~DeviceThread();
@@ -213,8 +206,6 @@ namespace RhythmNode
 
 		static DataThread* createDataThread(SourceNode* sn);
 
-		static BoardType boardType;
-
 		class DigitalOutputTimer : public Timer
 		{
 		public:
@@ -257,10 +248,10 @@ namespace RhythmNode
 		void setCableLength(int hsNum, float length);
 
 		/** Rhythm API classes*/
-		ScopedPointer<Rhd2000EvalBoard> evalBoard;
+		ScopedPointer<Rhd2000ONIBoard> evalBoard;
 		Rhd2000Registers chipRegisters;
 		ScopedPointer<Rhd2000DataBlock> dataBlock;
-		Array<Rhd2000EvalBoard::BoardDataSource> enabledStreams;
+		Array<Rhd2000ONIBoard::BoardDataSource> enabledStreams;
 
 		/** Custom classes*/
 		OwnedArray<Headstage> headstages;
@@ -343,9 +334,6 @@ namespace RhythmNode
 
 		/** Open the connection to the acquisition board*/
 		bool openBoard(String pathToLibrary);
-
-		/** Upload the bitfile*/
-		bool uploadBitfile(String pathToBitfile);
 
 		/** Initialize the board*/
 		void initializeBoard();

@@ -23,9 +23,9 @@
 
 #include "Headstage.h"
 
-using namespace RhythmNode;
+using namespace ONIRhythmNode;
 
-Headstage::Headstage(Rhd2000EvalBoard::BoardDataSource dataSource_, int MAX_H) :
+Headstage::Headstage(Rhd2000ONIBoard::BoardDataSource dataSource_, int MAX_H) :
     dataSource(dataSource_),
     MAX_NUM_HEADSTAGES(MAX_H),
     numStreams(0), 
@@ -127,10 +127,10 @@ int Headstage::getNumActiveChannels() const
     return (int)(getNumChannels() / (halfChannels ? 2 : 1));
 }
 
-Rhd2000EvalBoard::BoardDataSource Headstage::getDataStream (int index) const
+Rhd2000ONIBoard::BoardDataSource Headstage::getDataStream (int index) const
 {
     if (index < 0 || index > 1) index = 0;
-        return static_cast<Rhd2000EvalBoard::BoardDataSource>(dataSource + MAX_NUM_HEADSTAGES * index);
+        return static_cast<Rhd2000ONIBoard::BoardDataSource>(dataSource + MAX_NUM_HEADSTAGES * index);
 }
 
 bool Headstage::isConnected() const

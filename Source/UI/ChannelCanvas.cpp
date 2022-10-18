@@ -27,7 +27,7 @@
 
 #include "../DeviceThread.h"
 
-using namespace RhythmNode;
+using namespace ONIRhythmNode;
 
 /**********************************************/
 

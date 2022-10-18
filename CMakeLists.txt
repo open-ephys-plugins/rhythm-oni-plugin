@@ -82,8 +82,8 @@ elseif(APPLE)
 	"-undefined dynamic_lookup -rpath @loader_path/../../../../shared-api8")
 
 	add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND 
-    install_name_tool -change "@loader_path/../Frameworks/libokFrontPanel.dylib" 
-	"@rpath/libokFrontPanel.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
+    install_name_tool -change "@loader_path/../Frameworks/liboni.dylib" 
+	"@rpath/liboni.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
 
 	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/plugins-api8)
 endif()
@@ -98,13 +98,22 @@ foreach( src_file IN ITEMS ${SRC_FILES})
 endforeach()
 
 #additional libraries
+set(LIBONI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libONI)
+target_include_directories(${PLUGIN_NAME} PRIVATE ${LIBONI_DIR}/include)
+
 if (MSVC)
-	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/okFrontPanel.lib")
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/okFrontPanel.dll DESTINATION ${GUI_BIN_DIR}/shared CONFIGURATIONS ${CMAKE_CONFIGURATION_TYPES})
+    set(LIBONI_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libONI/win64)
+	target_link_libraries(${PLUGIN_NAME} "${LIBONI_LIB_DIR}/liboni.lib")
+	install(FILES ${LIBONI_LIB_DIR}/liboni.dll DESTINATION ${GUI_BIN_DIR}/shared CONFIGURATIONS ${CMAKE_CONFIGURATION_TYPES})
+    install(FILES ${LIBONI_LIB_DIR}/libonidriver_ft600.dll DESTINATION ${GUI_BIN_DIR}/shared CONFIGURATIONS ${CMAKE_CONFIGURATION_TYPES})
 elseif(LINUX)
-	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.so")
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.so DESTINATION ${GUI_BIN_DIR}/shared)
+    set(LIBONI_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libONI/linux)
+	target_link_libraries(${PLUGIN_NAME} "${LIBONI_LIB_DIR}/liboni.so")
+    install(FILES ${LIBONI_LIB_DIR}/liboni.so DESTINATION ${GUI_BIN_DIR}/shared)
+    install(FILES ${LIBONI_LIB_DIR}/libonidriver_ft600.so DESTINATION ${GUI_BIN_DIR}/shared)
 elseif(APPLE)
-	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib")
-	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/libokFrontPanel.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
+    set(LIBONI_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libONI/osx)
+    target_link_libraries(${PLUGIN_NAME} "${LIBONI_LIB_DIR}/liboni.dylib")
+    install(FILES ${LIBONI_LIB_DIR}/liboni.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
+    install(FILES ${LIBONI_LIB_DIR}/libonidriver_ft600.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
 endif()

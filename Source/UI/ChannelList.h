@@ -26,7 +26,7 @@
 
 #include <VisualizerEditorHeaders.h>
 
-namespace RhythmNode
+namespace ONIRhythmNode
 {
 
 	class DeviceThread;

@@ -24,7 +24,7 @@
 #include "ChannelComponent.h"
 #include "ChannelList.h"
 
-using namespace RhythmNode;
+using namespace ONIRhythmNode;
 
 ChannelComponent::ChannelComponent(ChannelList* cl, 
                                    int ch, 

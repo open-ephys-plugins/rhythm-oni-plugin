@@ -26,7 +26,7 @@
 
 #include "DeviceThread.h"
 
-namespace RhythmNode
+namespace ONIRhythmNode
 {
 
     /**
@@ -42,7 +42,7 @@ namespace RhythmNode
     public:
 
         /** Constructor */
-        AcquisitionBoard(SourceNode* sn) : DeviceThread(sn, ACQUISITION_BOARD) { }
+        AcquisitionBoard(SourceNode* sn) : DeviceThread(sn) { }
 
         /** Destructor */
         ~AcquisitionBoard() { }

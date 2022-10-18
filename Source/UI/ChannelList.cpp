@@ -29,7 +29,7 @@
 #include "../DeviceEditor.h"
 #include "../Headstage.h"
 
-using namespace RhythmNode;
+using namespace ONIRhythmNode;
 
 
 ChannelList::ChannelList(DeviceThread* board_, DeviceEditor* editor_) :

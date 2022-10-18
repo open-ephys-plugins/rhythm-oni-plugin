@@ -23,7 +23,7 @@
 
 #include "ImpedanceMeter.h"
 
-using namespace RhythmNode;
+using namespace ONIRhythmNode;
 
 #define PI  3.14159265359
 #define TWO_PI  6.28318530718
@@ -322,8 +322,8 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     // Create a command list for the AuxCmd1 slot.
     commandSequenceLength = board->chipRegisters.createCommandListZcheckDac(commandList, actualImpedanceFreq, 128.0);
     CHECK_EXIT;
-    board->evalBoard->uploadCommandList(commandList, Rhd2000EvalBoard::AuxCmd1, 1);
-    board->evalBoard->selectAuxCommandLength(Rhd2000EvalBoard::AuxCmd1,
+    board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd1, 1);
+    board->evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd1,
         0, commandSequenceLength - 1);
 
     if (board->settings.fastTTLSettleEnabled)
@@ -332,26 +332,14 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     }
 
     CHECK_EXIT;
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortA,
-        Rhd2000EvalBoard::AuxCmd1, 1);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortB,
-        Rhd2000EvalBoard::AuxCmd1, 1);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortC,
-        Rhd2000EvalBoard::AuxCmd1, 1);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortD,
-        Rhd2000EvalBoard::AuxCmd1, 1);
-
-    if (board->boardType == RHD_RECORDING_CONTROLLER)
-    {
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortE,
-            Rhd2000EvalBoard::AuxCmd1, 1);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortF,
-            Rhd2000EvalBoard::AuxCmd1, 1);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortG,
-            Rhd2000EvalBoard::AuxCmd1, 1);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortH,
-            Rhd2000EvalBoard::AuxCmd1, 1);
-    }
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA,
+        Rhd2000ONIBoard::AuxCmd1, 1);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB,
+        Rhd2000ONIBoard::AuxCmd1, 1);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC,
+        Rhd2000ONIBoard::AuxCmd1, 1);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD,
+        Rhd2000ONIBoard::AuxCmd1, 1);
 
     // Select number of periods to measure impedance over
     int numPeriods = (0.020 * actualImpedanceFreq); // Test each channel for at least 20 msec...
@@ -370,20 +358,12 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     commandSequenceLength = board->chipRegisters.createCommandListRegisterConfig(commandList, false);
     CHECK_EXIT;
     // Upload version with no ADC calibration to AuxCmd3 RAM Bank 1.
-    board->evalBoard->uploadCommandList(commandList, Rhd2000EvalBoard::AuxCmd3, 3);
-    board->evalBoard->selectAuxCommandLength(Rhd2000EvalBoard::AuxCmd3, 0, commandSequenceLength - 1);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortA, Rhd2000EvalBoard::AuxCmd3, 3);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortB, Rhd2000EvalBoard::AuxCmd3, 3);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortC, Rhd2000EvalBoard::AuxCmd3, 3);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortD, Rhd2000EvalBoard::AuxCmd3, 3);
-
-    if (board->boardType == RHD_RECORDING_CONTROLLER)
-    {
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortE, Rhd2000EvalBoard::AuxCmd3, 3);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortF, Rhd2000EvalBoard::AuxCmd3, 3);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortG, Rhd2000EvalBoard::AuxCmd3, 3);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortH, Rhd2000EvalBoard::AuxCmd3, 3);
-    }
+    board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 3);
+    board->evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd3, 0, commandSequenceLength - 1);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd3, 3);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd3, 3);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd3, 3);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd3, 3);
 
     CHECK_EXIT;
     board->evalBoard->setContinuousRunMode(false);
@@ -453,7 +433,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
             commandSequenceLength =
                 board->chipRegisters.createCommandListRegisterConfig(commandList, false);
             // Upload version with no ADC calibration to AuxCmd3 RAM Bank 1.
-            board->evalBoard->uploadCommandList(commandList, Rhd2000EvalBoard::AuxCmd3, 3);
+            board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 3);
 
             board->evalBoard->run();
             while (board->evalBoard->isRunning())
@@ -462,6 +442,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
             }
             std::queue<Rhd2000DataBlock> dataQueue;
             board->evalBoard->readDataBlocks(numBlocks, dataQueue);
+            board->evalBoard->stop();
             loadAmplifierData(dataQueue, numBlocks, numdataStreams);
 
             for (stream = 0; stream < numdataStreams; ++stream)
@@ -488,7 +469,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
                 commandSequenceLength =
                     board->chipRegisters.createCommandListRegisterConfig(commandList, false);
                 // Upload version with no ADC calibration to AuxCmd3 RAM Bank 1.
-                board->evalBoard->uploadCommandList(commandList, Rhd2000EvalBoard::AuxCmd3, 3);
+                board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 3);
 
                 board->evalBoard->run();
                 while (board->evalBoard->isRunning())
@@ -592,44 +573,25 @@ void ImpedanceMeter::restoreBoardSettings()
 {
     board->evalBoard->setContinuousRunMode(false);
     board->evalBoard->setMaxTimeStep(0);
-    board->evalBoard->flush();
 
     // Switch back to flatline
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortA, Rhd2000EvalBoard::AuxCmd1, 0);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortB, Rhd2000EvalBoard::AuxCmd1, 0);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortC, Rhd2000EvalBoard::AuxCmd1, 0);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortD, Rhd2000EvalBoard::AuxCmd1, 0);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd1, 0);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd1, 0);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd1, 0);
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd1, 0);
 
-    if (board->boardType == RHD_RECORDING_CONTROLLER)
-    {
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortE, Rhd2000EvalBoard::AuxCmd3, 3);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortF, Rhd2000EvalBoard::AuxCmd3, 3);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortG, Rhd2000EvalBoard::AuxCmd3, 3);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortH, Rhd2000EvalBoard::AuxCmd3, 3);
-    }
     
-    board->evalBoard->selectAuxCommandLength(Rhd2000EvalBoard::AuxCmd1, 0, 1);
+    board->evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd1, 0, 1);
 
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortA, Rhd2000EvalBoard::AuxCmd3,
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd3,
         board->settings.fastSettleEnabled ? 2 : 1);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortB, Rhd2000EvalBoard::AuxCmd3,
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd3,
         board->settings.fastSettleEnabled ? 2 : 1);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortC, Rhd2000EvalBoard::AuxCmd3,
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd3,
         board->settings.fastSettleEnabled ? 2 : 1);
-    board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortD, Rhd2000EvalBoard::AuxCmd3,
+    board->evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd3,
         board->settings.fastSettleEnabled ? 2 : 1);
 
-    if (board->boardType == RHD_RECORDING_CONTROLLER)
-    {
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortE, Rhd2000EvalBoard::AuxCmd3,
-            board->settings.fastSettleEnabled ? 2 : 1);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortF, Rhd2000EvalBoard::AuxCmd3,
-            board->settings.fastSettleEnabled ? 2 : 1);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortG, Rhd2000EvalBoard::AuxCmd3,
-            board->settings.fastSettleEnabled ? 2 : 1);
-        board->evalBoard->selectAuxCommandBank(Rhd2000EvalBoard::PortH, Rhd2000EvalBoard::AuxCmd3,
-            board->settings.fastSettleEnabled ? 2 : 1);
-    }
 
     if (board->settings.fastTTLSettleEnabled)
     {
