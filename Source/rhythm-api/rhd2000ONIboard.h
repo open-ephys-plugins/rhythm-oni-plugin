@@ -5,8 +5,8 @@
 #include <vector>
 #include <queue>
 
+
 #define MAX_NUM_DATA_STREAMS_USB3 16
-#define USB_BUFFER_SIZE 2560000
 
 class Rhd2000ONIBoard
 {
@@ -135,9 +135,6 @@ private:
     const oni_size_t usbReadBlockSize = 24 * 1024;
 
     static int oni_write_reg_mask(const oni_ctx ctx, oni_dev_idx_t dev_idx, oni_reg_addr_t addr, oni_reg_val_t value, unsigned int mask);
-
-    // Buffer for reading bytes from USB interface. This is only used for readDataBlock, which is outdated legacy, but only used for initialization
-    unsigned char usbBuffer[USB_BUFFER_SIZE];
 
     enum Rhythm_Registers
     {

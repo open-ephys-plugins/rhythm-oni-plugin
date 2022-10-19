@@ -1,6 +1,8 @@
 #include "rhd2000ONIboard.h"
 #include <iostream>
 #include <iomanip>
+#include <cmath>
+#include <cstring>
 
 Rhd2000ONIBoard::Rhd2000ONIBoard()
 {
@@ -840,27 +842,53 @@ int Rhd2000ONIBoard::readFrame(oni_frame_t** frame)
 bool Rhd2000ONIBoard::readDataBlock(Rhd2000DataBlock* dataBlock, int nSamples)
 {
     oni_frame_t* frame;
-    size_t offset = 0;;
+    size_t offset = 0;
+    size_t bufSize = Rhd2000DataBlock::calculateDataBlockSizeInWords(numDataStreams,true,nSamples);
+    unsigned char* usbBuffer = (unsigned char*)malloc(sizeof(uint16_t)*bufSize);
+    if (usbBuffer == NULL)
+    {
+    	std::cerr << "Error allocating usb buffer in readDataBlock" << std::endl;
+    	return false;
+    }
     for (int i = 0; i < nSamples; i++)
     {
-        if (readFrame(&frame) < ONI_ESUCCESS) return false;
+        if (readFrame(&frame) < ONI_ESUCCESS) 
+        {
+        	free(usbBuffer);
+        	return false;
+        }
+
         memcpy(usbBuffer + offset, frame->data + 8, frame->data_sz - 8);
         offset += frame->data_sz - 8;
         oni_destroy_frame(frame);
     }
     dataBlock->fillFromUsbBuffer(usbBuffer, 0, numDataStreams, nSamples);
+    free(usbBuffer);
+    return true;
 }
 
 //Same as readDataBlock
 bool Rhd2000ONIBoard::readDataBlocks(int numBlocks, std::queue<Rhd2000DataBlock>& dataQueue)
 {
     int nSamples = numBlocks * Rhd2000DataBlock::getSamplesPerDataBlock(true);
+    size_t bufSize = Rhd2000DataBlock::calculateDataBlockSizeInWords(numDataStreams,true,nSamples);
+    unsigned char* usbBuffer = (unsigned char*)malloc(sizeof(uint16_t)*bufSize);
+    if (usbBuffer == NULL)
+    {
+    	std::cerr << "Error allocating usb buffer in readDataBlocks" << std::endl;
+    	return false;
+    }
+    
     Rhd2000DataBlock* dataBlock;
     oni_frame_t* frame;
     size_t offset = 0;;
     for (int i = 0; i < nSamples; i++)
     {
-        if (readFrame(&frame) < ONI_ESUCCESS) return false;
+        if (readFrame(&frame) < ONI_ESUCCESS) 
+        {
+        	free(usbBuffer);
+        	return false;
+        }
         memcpy(usbBuffer + offset, frame->data + 8, frame->data_sz - 8);
         offset += frame->data_sz - 8;
         oni_destroy_frame(frame);
@@ -872,9 +900,8 @@ bool Rhd2000ONIBoard::readDataBlocks(int numBlocks, std::queue<Rhd2000DataBlock>
         dataQueue.push(*dataBlock);
     }
     delete dataBlock;
-
+    free(usbBuffer);
     return true;
-
 }
 
 void Rhd2000ONIBoard::setTtlOut(int ttlOutArray[16])
@@ -886,7 +913,7 @@ void Rhd2000ONIBoard::setTtlOut(int ttlOutArray[16])
             ttlOut += 1 << i;
     }
 
-    oni_frame_t* frame;
+   oni_frame_t* frame;
 
     if (oni_create_frame(ctx, &frame, DEVICE_TTL, &ttlOut, sizeof(ttlOut)) == ONI_ESUCCESS)
     {
