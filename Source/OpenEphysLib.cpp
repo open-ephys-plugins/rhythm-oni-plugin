@@ -40,7 +40,7 @@ using namespace Plugin;
 extern "C" EXPORT void getLibInfo(Plugin::LibraryInfo* info)
 {
 	info->apiVersion = PLUGIN_API_VER;
-	info->name = "ONI-Rhythm Plugin";
+	info->name = "Acquisition Board (OE FPGA)";
 	info->libVersion = "0.2.1";
 	info->numPlugins = NUM_PLUGINS;
 }
@@ -51,7 +51,7 @@ extern "C" EXPORT int getPluginInfo(int index, Plugin::PluginInfo* info)
 	{
 	case 0:
 		info->type = Plugin::Type::DATA_THREAD;
-		info->dataThread.name = "ONI-based Acquisition Board";
+		info->dataThread.name = "Acquisition Board (OE FPGA)";
 		info->dataThread.creator = &createDataThread<ONIRhythmNode::AcquisitionBoard>;
 		break;
 
