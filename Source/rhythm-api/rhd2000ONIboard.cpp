@@ -41,6 +41,7 @@ int Rhd2000ONIBoard::open()
     if (oni_init_ctx(ctx, -1) != ONI_ESUCCESS)
     {
         oni_destroy_ctx(ctx);
+        ctx = nullptr;
         return -2;
     }
 

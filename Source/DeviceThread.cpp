@@ -132,7 +132,7 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
 DeviceThread::~DeviceThread()
 {
     LOGD( "RHD2000 interface destroyed." );
-
+ //   const ScopedLock lock(oniLock);
     delete[] dacStream;
     delete[] dacChannels;
     delete[] dacThresholds;
@@ -348,7 +348,10 @@ void DeviceThread::initializeBoard()
     LOGD("DBG: E");
    
     //stopping clears the buffers, so we don't really need to read this last data
-    evalBoard->stop();
+    {
+        const ScopedLock lock(oniLock);
+        evalBoard->stop();
+    }
     LOGD("DBG: G");
     // Now that ADC calibration has been performed, we switch to the command sequence
     // that does not execute ADC calibration.
@@ -428,7 +431,10 @@ void DeviceThread::scanPorts()
 
     for (int i = 0; i < 8; i++)
         evalBoard->enableDataStream(i, true);
-    evalBoard->updateStreamBlockSize();
+    {
+        const ScopedLock lock(oniLock);
+        evalBoard->updateStreamBlockSize();
+    }
 
     LOGD("Number of enabled data streams: ", evalBoard->getNumEnabledDataStreams());
 
@@ -479,7 +485,10 @@ void DeviceThread::scanPorts()
         }
         // Read the resulting single data block from the USB interface.
         evalBoard->readDataBlock(dataBlock, INIT_STEP);
-        evalBoard->stop();
+        {
+            const ScopedLock lock(oniLock);
+            evalBoard->stop();
+        }
 
         // Read the Intan chip ID number from each RHD2000 chip found.
         // Record delay settings that yield good communication with the chip.
@@ -1103,6 +1112,7 @@ bool DeviceThread::enableHeadstage(int hsNum, bool enabled, int nStr, int strCha
 
 void DeviceThread::updateBoardStreams()
 {
+    const ScopedLock lock(oniLock);
     for (int i = 0; i < MAX_NUM_DATA_STREAMS; i++)
     {
         if (i < enabledStreams.size())
@@ -1276,7 +1286,7 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary)
             break;
         default:
             sampleRate = Rhd2000ONIBoard::SampleRate30000Hz;
-            numUsbBlocksToRead = 6;
+            numUsbBlocksToRead = 16;
             settings.boardSampleRate = 30000.0f;
     }
 
@@ -1428,8 +1438,9 @@ bool DeviceThread::startAcquisition()
 
     if (1)
     {
-        //LOGD("Flushing FIFO.");
+        LOGD("Setting continuous mode");
         evalBoard->setContinuousRunMode(true);
+        LOGD("Starting board");
         evalBoard->run();
     }
 
@@ -1465,6 +1476,7 @@ bool DeviceThread::stopAcquisition()
 
     if (deviceFound)
     {
+        const ScopedLock lock(oniLock);
         evalBoard->setContinuousRunMode(false);
         evalBoard->setMaxTimeStep(0);
         evalBoard->stop();
