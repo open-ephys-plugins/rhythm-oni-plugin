@@ -629,10 +629,9 @@ SampleRateInterface::SampleRateInterface(DeviceThread* board_,
 
     rateSelection = new ComboBox("Sample Rate");
     rateSelection->addItemList(sampleRateOptions, 1);
-    rateSelection->setSelectedId(1, dontSendNotification);
+    rateSelection->setSelectedId(0, dontSendNotification);
     rateSelection->addListener(this);
     rateSelection->setBounds(0, 12, 80, 20);
-    rateSelection->setEnabled(false);
     addAndMakeVisible(rateSelection);
 }
 
