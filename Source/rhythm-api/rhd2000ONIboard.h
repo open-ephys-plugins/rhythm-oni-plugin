@@ -131,6 +131,18 @@ public:
     void setDacManual(int value);
      void setDacGain(int gain);
 
+    bool getFirmwareVersion(int* major, int* minor) const;
+
+    enum BoardMemState
+    {
+        BOARDMEM_INIT = 0,
+        BOARDMEM_OK = 1,
+        BOARDMEM_INVALID = 2, //this should not happen
+        BOARDMEM_ERR = 3
+    };
+
+    BoardMemState getBoardMemState() const;
+
 private:
     const oni_size_t usbReadBlockSize = 24 * 1024;
 

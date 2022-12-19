@@ -338,6 +338,9 @@ namespace ONIRhythmNode
 		/** Initialize the board*/
 		void initializeBoard();
 
+		/**Check board memory status */
+		bool checkBoardMem() const;
+
 		/** Update register settings*/
 		void updateRegisters();
 

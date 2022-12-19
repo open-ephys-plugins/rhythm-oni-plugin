@@ -957,3 +957,21 @@ void Rhd2000ONIBoard::setDacManual(int value)
         oni_destroy_frame(frame);
     }
 }
+
+bool Rhd2000ONIBoard::getFirmwareVersion(int* major, int* minor) const
+{
+    if (!ctx) return false;
+    oni_reg_val_t val;
+    if (oni_read_reg(ctx, 254, 2, &val) != ONI_ESUCCESS) return false;
+    *minor = val & 0xFF;
+    *major = (val >> 8) & 0xFF;
+    return true;
+}
+
+Rhd2000ONIBoard::BoardMemState Rhd2000ONIBoard::getBoardMemState() const
+{
+    if (!ctx) return BOARDMEM_INVALID;
+    oni_reg_val_t val;
+    if (oni_read_reg(ctx, 254, 0x1000, &val) != ONI_ESUCCESS) return BOARDMEM_INVALID;
+    return static_cast<BoardMemState>(val & 0x03);
+}

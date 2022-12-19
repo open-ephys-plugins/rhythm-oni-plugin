@@ -102,6 +102,15 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
 
     if (openBoard(libraryFilePath))
     {
+        int minor, major;
+        if (evalBoard->getFirmwareVersion(&major, &minor))
+        {
+            LOGC("Open Ephys ECP5-ONI FPGA open. Gateware version v", major, ".", minor);
+        }
+        else
+        {
+            LOGE("Could not read fw version");
+        }
         dataBlock = new Rhd2000DataBlock(1, evalBoard->isUSB3());
 
         // upload bitfile and restore default settings
@@ -114,6 +123,22 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
         MAX_NUM_HEADSTAGES = MAX_NUM_DATA_STREAMS / 2;
 
         //std::cout << "MAX NUM STREAMS: " << MAX_NUM_DATA_STREAMS << ", MAX NUM HEADSTAGES: " << MAX_NUM_HEADSTAGES << std::endl;
+
+        Rhd2000ONIBoard::BoardMemState memState;
+        memState = evalBoard->getBoardMemState();
+        if (memState != Rhd2000ONIBoard::BOARDMEM_INVALID)
+        {
+            if (memState == Rhd2000ONIBoard::BOARDMEM_INIT)
+            {
+                LOGC("On-board memory still initializing. This might take up to 20 seconds. Please wait.");
+                do
+                {
+                    Thread::sleep(500);
+                    memState = evalBoard->getBoardMemState();
+                } while (memState == Rhd2000ONIBoard::BOARDMEM_INIT);
+                LOGC("Memory init completed. Resuming plugin initialization.")
+            }
+        }
 
         // automatically find connected headstages
         scanPorts(); // things would appear to run more smoothly if this were done after the editor has been created
@@ -137,6 +162,16 @@ DeviceThread::~DeviceThread()
     delete[] dacChannels;
     delete[] dacThresholds;
     delete[] dacChannelsToUpdate;
+}
+
+bool DeviceThread::checkBoardMem() const
+{
+    Rhd2000ONIBoard::BoardMemState memState;
+    memState = evalBoard->getBoardMemState();
+    if (memState == Rhd2000ONIBoard::BOARDMEM_INVALID) return true; //Firmware does not report memory status
+    if (memState == Rhd2000ONIBoard::BOARDMEM_OK) return true; 
+    LOGE("On-board memory error. Try again after 30 seconds or after closing the GUI, un-plugging the board from power and usb and plugging everything again. If the problem persists please contact support");
+    return false;
 }
 
 void DeviceThread::initialize(bool signalChainIsLoading)
@@ -382,6 +417,7 @@ void DeviceThread::scanPorts()
     {
         return;
     }
+    if (!checkBoardMem()) return;
     LOGD("DBG: SA");
     impedanceThread->stopThreadSafely();
 
@@ -524,7 +560,7 @@ void DeviceThread::scanPorts()
         int chipIdx = 0;
         for (int hs = 0; hs < DEBUG_EMULATE_HEADSTAGES && hs < headstages.size() ; ++hs)
         {
-            if (enabledStreams.size() < MAX_NUM_DATA_STREAMS(evalBoard->isUSB3()))
+            if (enabledStreams.size() < MAX_NUM_DATA_STREAMS)
             {
 #ifdef DEBUG_EMULATE_64CH
                 chipId.set(chipIdx++,CHIP_ID_RHD2164);
@@ -1420,6 +1456,8 @@ bool DeviceThread::startAcquisition()
     if (!deviceFound || (getNumChannels() == 0))
         return false;
 
+    if (!checkBoardMem()) return false;
+
     impedanceThread->waitSafely();
     dataBlock = new Rhd2000DataBlock(evalBoard->getNumEnabledDataStreams(), evalBoard->isUSB3());
 
@@ -1843,7 +1881,7 @@ short DeviceThread::getAdcRange(int channel) const
 
 void DeviceThread::runImpedanceTest()
 {
-
+    if (!checkBoardMem()) return;
     impedanceThread->stopThreadSafely();
 
     impedanceThread->runThread();
