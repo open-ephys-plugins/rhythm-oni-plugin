@@ -238,7 +238,7 @@ namespace ONIRhythmNode
 		int MAX_NUM_DATA_STREAMS;
 
 	private:
-
+		bool varSampleRateCapable = false;
 		std::queue<DigitalOutputCommand> digitalOutputCommands;
 
 		OwnedArray<DigitalOutputTimer> digitalOutputTimers;
@@ -325,7 +325,7 @@ namespace ONIRhythmNode
 			bool ledsEnabled = true;
 			bool newScan = true;
 			int numberingScheme = 1;
-			uint16 clockDivideFactor;
+			uint16 clockDivideFactor = 0;
 
 		} settings;
 
