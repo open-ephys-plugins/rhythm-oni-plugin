@@ -607,7 +607,7 @@ SampleRateInterface::SampleRateInterface(DeviceThread* board_,
 {
 
     name = "Sample Rate";
-/*
+
     sampleRateOptions.add("1.00 kS/s");
     sampleRateOptions.add("1.25 kS/s");
     sampleRateOptions.add("1.50 kS/s");
@@ -615,21 +615,19 @@ SampleRateInterface::SampleRateInterface(DeviceThread* board_,
     sampleRateOptions.add("2.50 kS/s");
     sampleRateOptions.add("3.00 kS/s");
     sampleRateOptions.add("3.33 kS/s");
-    sampleRateOptions.add("4.00 kS/s");
     sampleRateOptions.add("5.00 kS/s");
     sampleRateOptions.add("6.25 kS/s");
-    sampleRateOptions.add("8.00 kS/s");
     sampleRateOptions.add("10.0 kS/s");
     sampleRateOptions.add("12.5 kS/s");
     sampleRateOptions.add("15.0 kS/s");
     sampleRateOptions.add("20.0 kS/s");
-    sampleRateOptions.add("25.0 kS/s");*/
+    sampleRateOptions.add("25.0 kS/s");
     sampleRateOptions.add("30.0 kS/s");
 
 
     rateSelection = new ComboBox("Sample Rate");
     rateSelection->addItemList(sampleRateOptions, 1);
-    rateSelection->setSelectedId(0, dontSendNotification);
+    rateSelection->setSelectedId(15, dontSendNotification);
     rateSelection->addListener(this);
     rateSelection->setBounds(0, 12, 80, 20);
     addAndMakeVisible(rateSelection);

@@ -165,7 +165,108 @@ void Rhd2000ONIBoard::initialize()
 
 bool Rhd2000ONIBoard::setSampleRate(AmplifierSampleRate newSampleRate)
 {
-    //TODO: this needs to be implemented in the FPGA
+    /*
+    * Sample rate in the new board is controlled by a register in the Rhythm hub manager.
+    * To control it, 3 main clocks are created through PLLs. Clock can be chosen from one
+    * of these and, optionally, be devided by any even number.
+    * To access the register, device address is 510 register 8192. Its value is as follows:
+    * Bit0: 0 = Clock directly from one of the PLL outputs. 1 = Clock will be divided
+    * Bits1-2: "00" or "11" 84Mhz clock for 30KS/s. "01" 70MHz Clock for 25KS/s. "10" 56MHz clock for 20KS/s
+    * Bits3-6: if bit 0 is "1" the selected clock will be divided by this 2*(value + 1) (i.e.: 0 is a /2)
+    */
+    int divEn;
+    int clockSel;
+    int divider;
+    switch (newSampleRate) {
+    case SampleRate1000Hz:
+        divEn = 1;
+        clockSel = 2;
+        divider = 9;
+        break;
+    case SampleRate1250Hz:
+        divEn = 1;
+        clockSel = 1;
+        divider = 9;
+        break;
+    case SampleRate1500Hz:
+        divEn = 1;
+        clockSel = 0;
+        divider = 9;
+        break;
+    case SampleRate2000Hz:
+        divEn = 1;
+        clockSel = 2;
+        divider = 4;
+        break;
+    case SampleRate2500Hz:
+        divEn = 1;
+        clockSel = 1;
+        divider = 4;
+        break;
+    case SampleRate3000Hz:
+        divEn = 1;
+        clockSel = 0;
+        divider = 4;
+        break;
+    case SampleRate3333Hz:
+        divEn = 1;
+        clockSel = 2;
+        divider = 2;
+        break;
+    case SampleRate5000Hz:
+        divEn = 1;
+        clockSel = 2;
+        divider = 1;
+        break;
+    case SampleRate6250Hz:
+        divEn = 1;
+        clockSel = 1;
+        divider = 1;
+        break;
+    case SampleRate10000Hz:
+        divEn = 1;
+        clockSel = 2;
+        divider = 0;
+        break;
+    case SampleRate12500Hz:
+        divEn = 1;
+        clockSel = 1;
+        divider = 0;
+        break;
+    case SampleRate15000Hz:
+        divEn = 1;
+        clockSel = 0;
+        divider = 0;
+        break;
+    case SampleRate20000Hz:
+        divEn = 0;
+        clockSel = 2;
+        divider = 0;
+        break;
+    case SampleRate25000Hz:
+        divEn = 0;
+        clockSel = 1;
+        divider = 0;
+        break;
+    case SampleRate30000Hz:
+        divEn = 0;
+        clockSel = 0;
+        divider = 0;
+        break;
+    default:
+        return false;
+    }
+
+    oni_reg_val_t val = ((divider & 0xF) << 3) +((clockSel & 0x3) << 1) + (divEn & 0x1);
+    int res;
+    res = oni_write_reg(ctx, RHYTHM_HUB_MANAGER, HUB_CLOCK_SEL, val);
+    if (res != ONI_ESUCCESS) return false;
+    do
+    {
+        res = oni_read_reg(ctx, RHYTHM_HUB_MANAGER, HUB_CLOCK_BUSY, &val);
+        if (res != ONI_ESUCCESS) return false;
+    } while (val != 0);
+
     sampleRate = newSampleRate;
     return true;
 }
@@ -174,7 +275,7 @@ bool Rhd2000ONIBoard::setSampleRate(AmplifierSampleRate newSampleRate)
 double Rhd2000ONIBoard::getSampleRate() const
 {
     switch (sampleRate) {
-  /*  case SampleRate1000Hz:
+    case SampleRate1000Hz:
         return 1000.0;
         break;
     case SampleRate1250Hz:
@@ -195,17 +296,11 @@ double Rhd2000ONIBoard::getSampleRate() const
     case SampleRate3333Hz:
         return (10000.0 / 3.0);
         break;
-    case SampleRate4000Hz:
-        return 4000.0;
-        break;
     case SampleRate5000Hz:
         return 5000.0;
         break;
     case SampleRate6250Hz:
         return 6250.0;
-        break;
-    case SampleRate8000Hz:
-        return 8000.0;
         break;
     case SampleRate10000Hz:
         return 10000.0;
@@ -221,7 +316,7 @@ double Rhd2000ONIBoard::getSampleRate() const
         break;
     case SampleRate25000Hz:
         return 25000.0;
-        break;*/
+        break;
     case SampleRate30000Hz:
         return 30000.0;
         break;

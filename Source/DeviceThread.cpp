@@ -106,10 +106,20 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
         if (evalBoard->getFirmwareVersion(&major, &minor))
         {
             LOGC("Open Ephys ECP5-ONI FPGA open. Gateware version v", major, ".", minor);
+            if ((major << 8) + minor < 0x0003)
+            {
+                LOGC("This version of FPGA gateware is not compatible with variable sample rates. Please update it to gain that functionality");
+                varSampleRateCapable = false;
+            }
+            else
+            {
+                varSampleRateCapable = true;
+            }
         }
         else
         {
             LOGE("Could not read fw version");
+            varSampleRateCapable = false;
         }
         dataBlock = new Rhd2000DataBlock(1, evalBoard->isUSB3());
 
@@ -514,11 +524,11 @@ void DeviceThread::scanPorts()
         // Start SPI interface.
         evalBoard->run();
 
-        // Wait for the 60-sample run to complete.
-        while (evalBoard->isRunning())
+        // Wait for the 60-sample run to complete. //Not needed now.
+    /*    while (evalBoard->isRunning())
         {
             ;
-        }
+        }*/
         // Read the resulting single data block from the USB interface.
         evalBoard->readDataBlock(dataBlock, INIT_STEP);
         {
@@ -1229,6 +1239,12 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary)
         settings.savedSampleRateIndex = sampleRateIndex;
     }
 
+    if (varSampleRateCapable == false)
+    {
+        LOGD("Board not capable of sample rate change");
+        return;
+    }
+
     int numUsbBlocksToRead = 0; // placeholder - make this change the number of blocks that are read in DeviceThread::updateBuffer()
 
     Rhd2000ONIBoard::AmplifierSampleRate sampleRate; // just for local use
@@ -1236,7 +1252,7 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary)
     switch (sampleRateIndex)
     {
         case 0:
-      /*      sampleRate = Rhd2000ONIBoard::SampleRate1000Hz;
+            sampleRate = Rhd2000ONIBoard::SampleRate1000Hz;
             numUsbBlocksToRead = 1;
             settings.boardSampleRate = 1000.0f;
             break;
@@ -1271,51 +1287,41 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary)
             settings.boardSampleRate = 3333.0f;
             break;
         case 7:
-            sampleRate = Rhd2000ONIBoard::SampleRate4000Hz;
-            numUsbBlocksToRead = 2;
-            settings.boardSampleRate = 4000.0f;
-            break;
-        case 8:
             sampleRate = Rhd2000ONIBoard::SampleRate5000Hz;
             numUsbBlocksToRead = 3;
             settings.boardSampleRate = 5000.0f;
             break;
-        case 9:
+        case 8:
             sampleRate = Rhd2000ONIBoard::SampleRate6250Hz;
             numUsbBlocksToRead = 3;
             settings.boardSampleRate = 6250.0f;
             break;
-        case 10:
-            sampleRate = Rhd2000ONIBoard::SampleRate8000Hz;
-            numUsbBlocksToRead = 4;
-            settings.boardSampleRate = 8000.0f;
-            break;
-        case 11:
+        case 9:
             sampleRate = Rhd2000ONIBoard::SampleRate10000Hz;
             numUsbBlocksToRead = 6;
             settings.boardSampleRate = 10000.0f;
             break;
-        case 12:
+        case 10:
             sampleRate = Rhd2000ONIBoard::SampleRate12500Hz;
             numUsbBlocksToRead = 7;
             settings.boardSampleRate = 12500.0f;
             break;
-        case 13:
+        case 11:
             sampleRate = Rhd2000ONIBoard::SampleRate15000Hz;
             numUsbBlocksToRead = 8;
             settings.boardSampleRate = 15000.0f;
             break;
-        case 14:
+        case 12:
             sampleRate = Rhd2000ONIBoard::SampleRate20000Hz;
             numUsbBlocksToRead = 12;
             settings.boardSampleRate = 20000.0f;
             break;
-        case 15:
+        case 13:
             sampleRate = Rhd2000ONIBoard::SampleRate25000Hz;
             numUsbBlocksToRead = 14;
             settings.boardSampleRate = 25000.0f;
             break;
-        case 16:*/
+        case 14:
             sampleRate = Rhd2000ONIBoard::SampleRate30000Hz;
             numUsbBlocksToRead = 16;
             settings.boardSampleRate = 30000.0f;
@@ -1326,10 +1332,11 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary)
             settings.boardSampleRate = 30000.0f;
     }
 
-
-    // Select per-channel amplifier sampling rate.
-    evalBoard->setSampleRate(sampleRate);
-
+    {
+        const ScopedLock lock(oniLock);
+        // Select per-channel amplifier sampling rate.
+        evalBoard->setSampleRate(sampleRate);
+    }
     LOGD( "Sample rate set to ", evalBoard->getSampleRate() );
 
     // Now that we have set our sampling rate, we can set the MISO sampling delay
