@@ -59,7 +59,8 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
     deviceFound(false),
     isTransmitting(false),
     channelNamingScheme(GLOBAL_INDEX),
-    updateSettingsDuringAcquisition(false)
+    updateSettingsDuringAcquisition(false),
+    commonCommandsSet(false)
 {
 
     impedanceThread = new ImpedanceMeter(this);
@@ -494,7 +495,7 @@ void DeviceThread::scanPorts()
         Rhd2000ONIBoard::AuxCmd3, 0);
 
     
-    evalBoard->setMaxTimeStep(2*INIT_STEP);
+    evalBoard->setMaxTimeStep(128*INIT_STEP);
     evalBoard->setContinuousRunMode(false);
 
     ScopedPointer<Rhd2000DataBlock> dataBlock =
@@ -1364,30 +1365,37 @@ void DeviceThread::updateRegisters()
     int commandSequenceLength;
     std::vector<int> commandList;
 
-    // Create a command list for the AuxCmd1 slot.  This command sequence will continuously
-    // update Register 3, which controls the auxiliary digital output pin on each RHD2000 chip.
-    // In concert with the v1.4 Rhythm FPGA code, this permits real-time control of the digital
-    // output pin on chips on each SPI port.
-    chipRegisters.setDigOutLow();   // Take auxiliary output out of HiZ mode.
-    commandSequenceLength = chipRegisters.createCommandListUpdateDigOut(commandList);
-    evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd1, 0);
-    evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd1, 0, commandSequenceLength - 1);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd1, 0);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd1, 0);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd1, 0);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd1, 0);
+    //AuxCmd1 and AuxCmd2 registers are not sample-rate dependent, so it does not make sense to continuously update them
+    //Thus we only update them on the first call to updateRegisters()
+    if (!commonCommandsSet)
+    {
+        LOGD("Uploading commond commands");
+        // Create a command list for the AuxCmd1 slot.  This command sequence will continuously
+        // update Register 3, which controls the auxiliary digital output pin on each RHD2000 chip.
+        // In concert with the v1.4 Rhythm FPGA code, this permits real-time control of the digital
+        // output pin on chips on each SPI port.
+        chipRegisters.setDigOutLow();   // Take auxiliary output out of HiZ mode.
+        commandSequenceLength = chipRegisters.createCommandListUpdateDigOut(commandList);
+        evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd1, 0);
+        evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd1, 0, commandSequenceLength - 1);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd1, 0);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd1, 0);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd1, 0);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd1, 0);
 
 
-    // Next, we'll create a command list for the AuxCmd2 slot.  This command sequence
-    // will sample the temperature sensor and other auxiliary ADC inputs.
-    commandSequenceLength = chipRegisters.createCommandListTempSensor(commandList);
-    evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd2, 0);
-    evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd2, 0, commandSequenceLength - 1);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd2, 0);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd2, 0);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd2, 0);
-    evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd2, 0);
+        // Next, we'll create a command list for the AuxCmd2 slot.  This command sequence
+        // will sample the temperature sensor and other auxiliary ADC inputs.
+        commandSequenceLength = chipRegisters.createCommandListTempSensor(commandList);
+        evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd2, 0);
+        evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd2, 0, commandSequenceLength - 1);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd2, 0);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd2, 0);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd2, 0);
+        evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd2, 0);
 
+        commonCommandsSet = true;
+    }
 
     // Before generating register configuration command sequences, set amplifier
     // bandwidth paramters.
@@ -1401,7 +1409,7 @@ void DeviceThread::updateRegisters()
     chipRegisters.enableAux2(settings.acquireAux);
     chipRegisters.enableAux3(settings.acquireAux);
 
-    chipRegisters.createCommandListRegisterConfig(commandList, true);
+    commandSequenceLength = chipRegisters.createCommandListRegisterConfig(commandList, true);
     // Upload version with ADC calibration to AuxCmd3 RAM Bank 0.
     evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 0);
     evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd3, 0,

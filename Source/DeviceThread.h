@@ -239,6 +239,8 @@ namespace ONIRhythmNode
 
 	private:
 		bool varSampleRateCapable = false;
+
+		bool commonCommandsSet = false;
 		std::queue<DigitalOutputCommand> digitalOutputCommands;
 
 		OwnedArray<DigitalOutputTimer> digitalOutputTimers;
