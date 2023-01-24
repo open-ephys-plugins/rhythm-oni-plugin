@@ -48,22 +48,20 @@ public:
     };
 
     enum AmplifierSampleRate {
-        /*      SampleRate1000Hz,
+              SampleRate1000Hz,
               SampleRate1250Hz,
               SampleRate1500Hz,
               SampleRate2000Hz,
               SampleRate2500Hz,
               SampleRate3000Hz,
               SampleRate3333Hz,
-              SampleRate4000Hz,
               SampleRate5000Hz,
               SampleRate6250Hz,
-              SampleRate8000Hz,
               SampleRate10000Hz,
               SampleRate12500Hz,
               SampleRate15000Hz,
               SampleRate20000Hz,
-              SampleRate25000Hz,*/
+              SampleRate25000Hz,
         SampleRate30000Hz
     };
 
@@ -205,6 +203,11 @@ private:
     const oni_dev_idx_t DEVICE_RHYTHM = 0x0101;
     const oni_dev_idx_t DEVICE_TTL = 0x0102;
     const oni_dev_idx_t DEVICE_DAC = 0x0103;
+    
+    const oni_dev_idx_t RHYTHM_HUB_MANAGER = 0x01FE;
+    const oni_reg_addr_t HUB_CLOCK_SEL = 0x2000;
+    const oni_reg_addr_t HUB_CLOCK_BUSY = 0x2001;
+
 
     /** The ONI context object */
     oni_ctx ctx;
