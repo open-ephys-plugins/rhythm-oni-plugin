@@ -33,6 +33,9 @@
 
 using namespace ONIRhythmNode;
 
+#undef LOGD(...)
+#define LOGD(...) LOGC(__VA_ARGS__)
+
 #if defined(_WIN32)
 #define okLIB_NAME "okFrontPanel.dll"
 #define okLIB_EXTENSION "*.dll"
