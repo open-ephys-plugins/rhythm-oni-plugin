@@ -1011,11 +1011,13 @@ void Rhd2000ONIBoard::setTtlOut(int ttlOutArray[16])
 
    oni_frame_t* frame;
 
-    if (oni_create_frame(ctx, &frame, DEVICE_TTL, &ttlOut, sizeof(ttlOut)) == ONI_ESUCCESS)
-    {
-        oni_write_frame(ctx, frame);
-        oni_destroy_frame(frame);
-    }
+   int res = oni_create_frame(ctx, &frame, DEVICE_TTL, &ttlOut, sizeof(ttlOut));
+   if (res > ONI_ESUCCESS)
+   {
+       oni_write_frame(ctx, frame);
+       oni_destroy_frame(frame);
+   }
+   else std::cerr << "Error creating frame for TTL writing "<<  res << ": " << oni_error_str(res) << std::endl;
 
 }
 
@@ -1024,12 +1026,14 @@ void Rhd2000ONIBoard::clearTtlOut()
     int32_t ttlOut = 0;
 
     oni_frame_t* frame;
-
-    if (oni_create_frame(ctx, &frame, DEVICE_TTL, &ttlOut, sizeof(ttlOut)) == ONI_ESUCCESS)
+    
+    int res = oni_create_frame(ctx, &frame, DEVICE_TTL, &ttlOut, sizeof(ttlOut));
+    if (res > ONI_ESUCCESS)
     {
         oni_write_frame(ctx, frame);
         oni_destroy_frame(frame);
     }
+    else std::cerr << "Error creating frame for TTL clearing " << res << ": " << oni_error_str(res) << std::endl;
 
 }
 
@@ -1046,11 +1050,13 @@ void Rhd2000ONIBoard::setDacManual(int value)
         values[i] = value + (value << 16);
     }
     oni_frame_t* frame;
-    if (oni_create_frame(ctx, &frame, DEVICE_DAC, values, 4 * sizeof(oni_size_t)) == ONI_ESUCCESS)
+    int res = oni_create_frame(ctx, &frame, DEVICE_DAC, values, 4 * sizeof(oni_size_t));
+    if (res > ONI_ESUCCESS)
     {
         oni_write_frame(ctx, frame);
         oni_destroy_frame(frame);
     }
+    else std::cerr << "Error creating frame for DAC writing " << res << ": " << oni_error_str(res) << std::endl;
 }
 
 bool Rhd2000ONIBoard::getFirmwareVersion(int* major, int* minor) const
