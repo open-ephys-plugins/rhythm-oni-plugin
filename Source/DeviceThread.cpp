@@ -1369,7 +1369,7 @@ void DeviceThread::updateRegisters()
     //Thus we only update them on the first call to updateRegisters()
     if (!commonCommandsSet)
     {
-        LOGD("Uploading commond commands");
+        LOGD("Uploading common commands");
         // Create a command list for the AuxCmd1 slot.  This command sequence will continuously
         // update Register 3, which controls the auxiliary digital output pin on each RHD2000 chip.
         // In concert with the v1.4 Rhythm FPGA code, this permits real-time control of the digital

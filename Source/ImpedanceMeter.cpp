@@ -268,11 +268,13 @@ void ImpedanceMeter::empiricalResistanceCorrection(double& impedanceMagnitude, d
 
 void ImpedanceMeter::run()
 {
-
+    LOGD("Running imedance measurement");
     runImpedanceMeasurement(board->impedances);
     
+    LOGD("Restoring board settings");
     restoreBoardSettings();
 
+    LOGD("Impedance measurement finished");
     board->impedanceMeasurementFinished();
 
     setProgress(1.0f);
@@ -290,6 +292,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     setProgress(0.0f);
 
     int numdataStreams = board->evalBoard->getNumEnabledDataStreams();
+	LOGD("ImpedanceMeter: Num enabled streams = ", numdataStreams);
 
     bool rhd2164ChipPresent = false;
     int chOffset;
@@ -312,16 +315,19 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     }
 
     bool validImpedanceFreq;
+    LOGD("ImpedanceMeter: Updating impedance frequency to 1000");
     float actualImpedanceFreq = updateImpedanceFrequency(1000.0, validImpedanceFreq);
 
     if (!validImpedanceFreq)
     {
+        LOGD("Invalid frqeuency");
         return;
     }
     
     // Create a command list for the AuxCmd1 slot.
     commandSequenceLength = board->chipRegisters.createCommandListZcheckDac(commandList, actualImpedanceFreq, 128.0);
     CHECK_EXIT;
+    LOGD("ImpedanceMeter: Updating command list");
     board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd1, 1);
     board->evalBoard->selectAuxCommandLength(Rhd2000ONIBoard::AuxCmd1,
         0, commandSequenceLength - 1);
@@ -354,6 +360,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     board->settings.dsp.upperBandwidth = board->chipRegisters.setUpperBandwidth(board->settings.dsp.upperBandwidth);
     board->chipRegisters.enableDsp(board->settings.dsp.enabled);
     board->chipRegisters.enableZcheck(true);
+    LOGD("ImpedanceMeter: Z check enabled");
     
     commandSequenceLength = board->chipRegisters.createCommandListRegisterConfig(commandList, false);
     CHECK_EXIT;
@@ -368,7 +375,8 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     CHECK_EXIT;
     board->evalBoard->setContinuousRunMode(false);
     board->evalBoard->setMaxTimeStep(SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3()) * numBlocks);
-
+    LOGD("ImpedanceMeter: setMaxTimestep");
+    
     // Create matrices of doubles of size (numStreams x 32 x 3) to store complex amplitudes
     // of all amplifier channels (32 on each data stream) at three different Cseries values.
     std::vector<std::vector<std::vector<double>>>  measuredMagnitude;
@@ -406,7 +414,8 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     // for each channel so that we achieve a wide impedance measurement range.
     for (capRange = 0; capRange < 3; ++capRange)
     {
-
+        LOGD("ImpedanceMeter: capRange = ", capRange);
+        
         switch (capRange)
         {
         case 0:
@@ -428,6 +437,8 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
         {
 
             CHECK_EXIT;
+
+            LOGD("ImpedanceMeter: channel = ", channel);
    
             board->chipRegisters.setZcheckChannel(channel);
             commandSequenceLength =
@@ -435,19 +446,27 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
             // Upload version with no ADC calibration to AuxCmd3 RAM Bank 1.
             board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 3);
 
+            LOGD("ImpedanceMeter: uploaded command list");
+            
             board->evalBoard->run();
+			LOGD("ImpedanceMeter: waiting for run to finish");
             while (board->evalBoard->isRunning())
             {
 
             }
+            LOGD("ImpedanceMeter: run finished");
             std::queue<Rhd2000DataBlock> dataQueue;
-            board->evalBoard->readDataBlocks(numBlocks, dataQueue);
+            LOGD("ImpedanceMeter: reading ", numBlocks, " data blocks");
+            board->evalBoard->readDataBlocks(numBlocks, dataQueue); // <--- this is where it gets stuck
+            LOGD("ImpedanceMeter: stopping evalBoard");
             board->evalBoard->stop();
+            LOGD("ImpedanceMeter: stopped evalBoard");
             loadAmplifierData(dataQueue, numBlocks, numdataStreams);
-
+            LOGD("ImpedanceMeter: loaded amplifier data");
+            
             for (stream = 0; stream < numdataStreams; ++stream)
             {
-
+                LOGD("ImpedanceMeter: stream = ", stream);
                 setProgress(float(capRange) / 3.0f 
                             + (float(channel) / 32.0f / 3.0f) 
                             + (float(stream) / float(numdataStreams) / 32.0f / 3.0f));
