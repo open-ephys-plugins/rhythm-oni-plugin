@@ -76,6 +76,10 @@ void ImpedanceMeter::stopThreadSafely()
         if (!stopThread(3000)) //wait three seconds max for it to exit gracefully
         {
             std::cerr << "ERROR: Impedance measurement did not exit." << std::endl;
+            {
+                const ScopedLock lock(board->oniLock);
+                board->evalBoard->stop();
+            }
         }
     }
 }
@@ -89,6 +93,10 @@ void ImpedanceMeter::waitSafely()
         if (!stopThread(3000)) //wait three seconds max for it to exit gracefully
         {
             std::cerr << "ERROR: Impedance measurement thread did not exit." << std::endl;
+            {
+                const ScopedLock lock(board->oniLock);
+                board->evalBoard->stop();
+            }
         }
     }
 }
@@ -367,7 +375,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
 
     CHECK_EXIT;
     board->evalBoard->setContinuousRunMode(false);
-    board->evalBoard->setMaxTimeStep(SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3()) * numBlocks);
+    board->evalBoard->setMaxTimeStep(128*SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3()) * numBlocks);
 
     // Create matrices of doubles of size (numStreams x 32 x 3) to store complex amplitudes
     // of all amplifier channels (32 on each data stream) at three different Cseries values.
@@ -436,13 +444,16 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
             board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 3);
 
             board->evalBoard->run();
-            while (board->evalBoard->isRunning())
+           /* while (board->evalBoard->isRunning())
             {
 
-            }
+            }*/
             std::queue<Rhd2000DataBlock> dataQueue;
             board->evalBoard->readDataBlocks(numBlocks, dataQueue);
-            board->evalBoard->stop();
+            {
+                const ScopedLock lock(board->oniLock);
+                board->evalBoard->stop();
+            }
             loadAmplifierData(dataQueue, numBlocks, numdataStreams);
 
             for (stream = 0; stream < numdataStreams; ++stream)
@@ -472,11 +483,15 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
                 board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 3);
 
                 board->evalBoard->run();
-                while (board->evalBoard->isRunning())
+              /*  while (board->evalBoard->isRunning())
                 {
 
-                }
+                }*/
                 board->evalBoard->readDataBlocks(numBlocks, dataQueue);
+                {
+                    const ScopedLock lock(board->oniLock);
+                    board->evalBoard->stop();
+                }
                 loadAmplifierData(dataQueue, numBlocks, numdataStreams);
 
                 for (stream = 0; stream < board->evalBoard->getNumEnabledDataStreams(); ++stream)
