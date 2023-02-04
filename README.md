@@ -1,6 +1,6 @@
 # Rhythm ONI Plugin
 
-![acquisition-board-plugin-screenshot](Resources/acquisition-board-plugin.png)
+![acquisition-board-plugin-screenshot](https://open-ephys.github.io/gui-docs/_images/rhythmfpga-01.png)
 
 A set of plugins for streaming data from a device running ONI compatible version of Intan's Rhythm firmware. 
 
