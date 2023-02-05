@@ -382,14 +382,9 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
 
     CHECK_EXIT;
     board->evalBoard->setContinuousRunMode(false);
-<<<<<<< HEAD
-    board->evalBoard->setMaxTimeStep(SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3()) * numBlocks);
-    LOGD("ImpedanceMeter: setMaxTimestep");
-    
-=======
+
     board->evalBoard->setMaxTimeStep(128*SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3()) * numBlocks);
 
->>>>>>> dev
     // Create matrices of doubles of size (numStreams x 32 x 3) to store complex amplitudes
     // of all amplifier channels (32 on each data stream) at three different Cseries values.
     std::vector<std::vector<std::vector<double>>>  measuredMagnitude;
@@ -427,7 +422,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     // for each channel so that we achieve a wide impedance measurement range.
     for (capRange = 0; capRange < 3; ++capRange)
     {
-        LOGD("ImpedanceMeter: capRange = ", capRange);
+        //LOGD("ImpedanceMeter: capRange = ", capRange);
         
         switch (capRange)
         {
@@ -451,7 +446,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
 
             CHECK_EXIT;
 
-            LOGD("ImpedanceMeter: channel = ", channel);
+            //LOGD("ImpedanceMeter: channel = ", channel);
    
             board->chipRegisters.setZcheckChannel(channel);
             commandSequenceLength =
@@ -459,40 +454,23 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
             // Upload version with no ADC calibration to AuxCmd3 RAM Bank 1.
             board->evalBoard->uploadCommandList(commandList, Rhd2000ONIBoard::AuxCmd3, 3);
 
-            LOGD("ImpedanceMeter: uploaded command list");
+            //LOGD("ImpedanceMeter: uploaded command list");
             
             board->evalBoard->run();
-<<<<<<< HEAD
-			LOGD("ImpedanceMeter: waiting for run to finish");
-            while (board->evalBoard->isRunning())
-            {
 
-            }
-            LOGD("ImpedanceMeter: run finished");
-            std::queue<Rhd2000DataBlock> dataQueue;
-            LOGD("ImpedanceMeter: reading ", numBlocks, " data blocks");
-            board->evalBoard->readDataBlocks(numBlocks, dataQueue); // <--- this is where it gets stuck
-            LOGD("ImpedanceMeter: stopping evalBoard");
-            board->evalBoard->stop();
-            LOGD("ImpedanceMeter: stopped evalBoard");
-=======
-           /* while (board->evalBoard->isRunning())
-            {
-
-            }*/
             std::queue<Rhd2000DataBlock> dataQueue;
             board->evalBoard->readDataBlocks(numBlocks, dataQueue);
             {
                 const ScopedLock lock(board->oniLock);
                 board->evalBoard->stop();
             }
->>>>>>> dev
+
             loadAmplifierData(dataQueue, numBlocks, numdataStreams);
-            LOGD("ImpedanceMeter: loaded amplifier data");
+            //LOGD("ImpedanceMeter: loaded amplifier data");
             
             for (stream = 0; stream < numdataStreams; ++stream)
             {
-                LOGD("ImpedanceMeter: stream = ", stream);
+                //LOGD("ImpedanceMeter: stream = ", stream);
                 setProgress(float(capRange) / 3.0f 
                             + (float(channel) / 32.0f / 3.0f) 
                             + (float(stream) / float(numdataStreams) / 32.0f / 3.0f));

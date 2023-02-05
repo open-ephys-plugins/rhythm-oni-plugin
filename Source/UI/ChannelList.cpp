@@ -56,14 +56,14 @@ ChannelList::ChannelList(DeviceThread* board_, DeviceEditor* editor_) :
     impedanceButton->setRadius(3);
     impedanceButton->setBounds(280,10,140,25);
     impedanceButton->addListener(this);
-   // addAndMakeVisible(impedanceButton);
+    addAndMakeVisible(impedanceButton);
 
     saveImpedanceButton = new UtilityButton("Save Impedances", Font("Default", 13, Font::plain));
     saveImpedanceButton->setRadius(3);
     saveImpedanceButton->setBounds(430,10,150,25);
     saveImpedanceButton->addListener(this);
     saveImpedanceButton->setEnabled(false);
-   // addAndMakeVisible(saveImpedanceButton);
+    addAndMakeVisible(saveImpedanceButton);
 
     gains.clear();
     gains.add(0.01);
