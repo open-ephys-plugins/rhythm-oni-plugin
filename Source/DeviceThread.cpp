@@ -751,6 +751,9 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
             for (int ch = 0; ch < headstage->getNumChannels(); ch++)
             {
 
+                if (headstage->getHalfChannels() && ch >= 16)
+                    continue;
+
                 ContinuousChannel::Settings channelSettings{
                     ContinuousChannel::ELECTRODE,
                     headstage->getChannelName(ch),

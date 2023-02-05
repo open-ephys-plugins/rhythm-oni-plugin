@@ -59,6 +59,10 @@ void Headstage::setNumStreams(int num)
 
     LOGD("Headstage ", prefix, " setting num streams to ", num);
 
+
+    if (num == 2)
+        halfChannels = false;
+    
     if (numStreams != num)
     {
         numStreams = num;
@@ -113,6 +117,10 @@ int Headstage::getNumChannels() const
 
 void Headstage::setHalfChannels(bool half)
 {
+
+    if (getNumChannels() == 64)
+        return;
+    
     if (halfChannels != half)
     {
         halfChannels = half;

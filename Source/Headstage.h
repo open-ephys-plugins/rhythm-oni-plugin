@@ -110,6 +110,9 @@ namespace ONIRhythmNode
 		/** Sets the number of half-channels; mainly used for the 16-ch RHD2132 board */
 		void setHalfChannels(bool half); 
 
+		/** Returns true if the headstage is in half-channels mode */
+		bool getHalfChannels() { return halfChannels; }
+		
 		/** Auto-generates the channel names, based on the naming scheme*/
 		void generateChannelNames();
 
