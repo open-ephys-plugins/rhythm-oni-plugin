@@ -95,7 +95,7 @@ void ChannelList::buttonClicked(Button* btn)
 
         FileChooser chooseOutputFile("Please select the location to save...",
             File(),
-            ".xml");
+            "*.xml");
 
         if (chooseOutputFile.browseForFileToSave(true))
         {
