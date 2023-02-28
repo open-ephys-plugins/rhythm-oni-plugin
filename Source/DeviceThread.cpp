@@ -775,9 +775,20 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
                 }
 
             }
+        }
+    }
 
-            if (settings.acquireAux)
+    if (settings.acquireAux)
+    {
+        hsIndex = -1;
+        
+        for (auto headstage : headstages)
+        {
+            hsIndex++;
+
+            if (headstage->isConnected())
             {
+
                 for (int ch = 0; ch < 3; ch++)
                 {
 
@@ -799,6 +810,7 @@ void DeviceThread::updateSettings(OwnedArray<ContinuousChannel>* continuousChann
             }
         }
     }
+
 
     if (settings.acquireAdc)
     {
