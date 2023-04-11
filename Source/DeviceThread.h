@@ -370,6 +370,8 @@ namespace ONIRhythmNode
 		StringArray channelNames;
 		CriticalSection oniLock;
 
+		int regOffset;
+
 		JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DeviceThread);
 	};
 

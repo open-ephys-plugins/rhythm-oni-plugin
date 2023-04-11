@@ -31,6 +31,8 @@
 #include "ImpedanceMeter.h"
 #include "Headstage.h"
 
+#include <sstream>
+
 using namespace ONIRhythmNode;
 
 #if defined(_WIN32)
@@ -48,6 +50,9 @@ using namespace ONIRhythmNode;
 //#define DEBUG_EMULATE_64CH
 
 #define INIT_STEP 64
+
+//#undef LOGD(...) 
+//#define LOGD(...) LOGC(__VA_ARGS__) 
 
 DataThread* DeviceThread::createDataThread(SourceNode *sn)
 {
@@ -100,7 +105,7 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
     dacChannels = new int[8];
     dacThresholds = new float[8];
     dacChannelsToUpdate = new bool[8];
-
+    
     if (openBoard(libraryFilePath))
     {
         int minor, major;
@@ -115,6 +120,14 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
             else
             {
                 varSampleRateCapable = true;
+            }
+            if ((major << 8) + minor <= 0x0004)
+            {
+                regOffset = 1;
+            }
+            else
+            {
+                regOffset = 0;
             }
         }
         else
@@ -517,6 +530,7 @@ void DeviceThread::scanPorts()
 
     for (delay = 0; delay < 16; delay++)
     {
+        LOGD("Setting delay to: ", delay);
         evalBoard->setCableDelay(Rhd2000ONIBoard::PortA, delay);
         evalBoard->setCableDelay(Rhd2000ONIBoard::PortB, delay);
         evalBoard->setCableDelay(Rhd2000ONIBoard::PortC, delay);
@@ -543,6 +557,8 @@ void DeviceThread::scanPorts()
         {
 
             id = getDeviceId(dataBlock, hs, register59Value);
+
+       //     LOGD("hs ", hs, " id ", id, " r59 ", (int)register59Value);
 
             if (id == CHIP_ID_RHD2132 || id == CHIP_ID_RHD2216 ||
                 (id == CHIP_ID_RHD2164 && register59Value == REGISTER_59_MISO_A))
@@ -680,14 +696,24 @@ int DeviceThread::getDeviceId(Rhd2000DataBlock* dataBlock, int stream, int& regi
     // communication channel.
 
     //Due to the way the firmware works, all aux results are shifted one sample
-    intanChipPresent = ((char) dataBlock->auxiliaryData[stream][2][32+1] == 'I' &&
-                        (char) dataBlock->auxiliaryData[stream][2][33 + 1] == 'N' &&
-                        (char) dataBlock->auxiliaryData[stream][2][34 + 1] == 'T' &&
-                        (char) dataBlock->auxiliaryData[stream][2][35 + 1] == 'A' &&
-                        (char) dataBlock->auxiliaryData[stream][2][36 + 1] == 'N' &&
-                        (char) dataBlock->auxiliaryData[stream][2][24 + 1] == 'R' &&
-                        (char) dataBlock->auxiliaryData[stream][2][25 + 1] == 'H' &&
-                        (char) dataBlock->auxiliaryData[stream][2][26 + 1] == 'D');
+    intanChipPresent = ((char) dataBlock->auxiliaryData[stream][2][32 + regOffset] == 'I' &&
+                        (char) dataBlock->auxiliaryData[stream][2][33 + regOffset] == 'N' &&
+                        (char) dataBlock->auxiliaryData[stream][2][34 + regOffset] == 'T' &&
+                        (char) dataBlock->auxiliaryData[stream][2][35 + regOffset] == 'A' &&
+                        (char) dataBlock->auxiliaryData[stream][2][36 + regOffset] == 'N' &&
+                        (char) dataBlock->auxiliaryData[stream][2][24 + regOffset] == 'R' &&
+                        (char) dataBlock->auxiliaryData[stream][2][25 + regOffset] == 'H' &&
+                        (char) dataBlock->auxiliaryData[stream][2][26 + regOffset] == 'D');
+
+  /*  std::stringstream ss;
+    ss << std::hex << std::uppercase << std::setfill('0');
+    ss << ((uint16)dataBlock->auxiliaryData[stream][2][32 + regOffset] & 0xFF) << " ";
+    ss << ((uint16)dataBlock->auxiliaryData[stream][2][33 + regOffset] & 0xFF) << " ";
+    ss << ((uint16)dataBlock->auxiliaryData[stream][2][34 + regOffset] & 0xFF) << " ";
+    ss << ((uint16)dataBlock->auxiliaryData[stream][2][23 + regOffset] & 0xFF) << " ";
+    ss << ((uint16)dataBlock->auxiliaryData[stream][2][19 + regOffset] & 0xFF) << " ";
+
+    LOGD("Detecting ", ss.str());*/
 
     // If the SPI communication is bad, return -1.  Otherwise, return the Intan
     // chip ID number stored in ROM regstier 63.
@@ -698,8 +724,8 @@ int DeviceThread::getDeviceId(Rhd2000DataBlock* dataBlock, int stream, int& regi
     }
     else
     {
-        register59Value = dataBlock->auxiliaryData[stream][2][23+1]; // Register 59
-        return dataBlock->auxiliaryData[stream][2][19+1]; // chip ID (Register 63)
+        register59Value = dataBlock->auxiliaryData[stream][2][23 + regOffset]; // Register 59
+        return dataBlock->auxiliaryData[stream][2][19 + regOffset]; // chip ID (Register 63)
     }
 }
 
