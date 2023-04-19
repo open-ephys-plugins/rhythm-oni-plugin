@@ -81,9 +81,13 @@ elseif(APPLE)
 	set_property(TARGET ${PLUGIN_NAME} APPEND_STRING PROPERTY LINK_FLAGS
 	"-undefined dynamic_lookup -rpath @loader_path/../../../../shared-api8")
 
-	#add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND 
-    #install_name_tool -change "@loader_path/../Frameworks/liboni.dylib" 
-	#"@rpath/liboni.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
+	add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND 
+		install_name_tool -change "liboni.dylib" 
+		"@rpath/liboni.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
+	
+	add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND 
+		install_name_tool -change "libonidriver_ft600.dylib" 
+		"@rpath/libonidriver_ft600.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
 
 	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/plugins-api8)
 endif()
@@ -113,6 +117,7 @@ elseif(LINUX)
 elseif(APPLE)
     set(LIBONI_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libONI/osx)
     target_link_libraries(${PLUGIN_NAME} "${LIBONI_LIB_DIR}/liboni.dylib")
+	target_link_libraries(${PLUGIN_NAME} "${LIBONI_LIB_DIR}/libonidriver_ft600.dylib")
     install(FILES ${LIBONI_LIB_DIR}/liboni.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
     install(FILES ${LIBONI_LIB_DIR}/libonidriver_ft600.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
 endif()
