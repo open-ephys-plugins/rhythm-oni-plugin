@@ -88,6 +88,10 @@ elseif(APPLE)
 	add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND 
 		install_name_tool -change "libonidriver_ft600.dylib" 
 		"@rpath/libonidriver_ft600.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
+	
+	add_custom_command(TARGET ${PLUGIN_NAME} POST_BUILD COMMAND 
+		install_name_tool -change "libftd3xx.dylib" 
+		"@rpath/libftd3xx.dylib" $<TARGET_FILE:${PLUGIN_NAME}>)
 
 	install(TARGETS ${PLUGIN_NAME} DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/plugins-api8)
 endif()
@@ -118,6 +122,8 @@ elseif(APPLE)
     set(LIBONI_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libONI/osx)
     target_link_libraries(${PLUGIN_NAME} "${LIBONI_LIB_DIR}/liboni.dylib")
 	target_link_libraries(${PLUGIN_NAME} "${LIBONI_LIB_DIR}/libonidriver_ft600.dylib")
+	target_link_libraries(${PLUGIN_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Drivers/libftd3xx.dylib")
     install(FILES ${LIBONI_LIB_DIR}/liboni.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
     install(FILES ${LIBONI_LIB_DIR}/libonidriver_ft600.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Drivers/libftd3xx.dylib DESTINATION $ENV{HOME}/Library/Application\ Support/open-ephys/shared-api8)
 endif()
