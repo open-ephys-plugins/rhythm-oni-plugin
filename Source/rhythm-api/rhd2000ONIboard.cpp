@@ -589,6 +589,7 @@ void Rhd2000ONIBoard::setCableLengthMeters(BoardPort port, double lengthInMeters
     delay = (int)floor(((timeDelay / tStep) + 1.0) + 0.5);
 
     if (delay < 1) delay = 1;   // delay of zero is too short (due to I/O delays), even for zero-length cables
+    delay = delay + 1; //For extra clock step
 
     setCableDelay(port, delay);
 }
@@ -603,6 +604,7 @@ void Rhd2000ONIBoard::setCableLengthFeet(BoardPort port, double lengthInFeet)
 // (Note: Depends on sample rate.)
 double Rhd2000ONIBoard::estimateCableLengthMeters(int delay) const
 {
+    delay = delay - 1; //Extra clock step for timings in ECP5 board
     double tStep, cableVelocity, distance;
     const double speedOfLight = 299792458.0;  // units = meters per second
     const double xilinxLvdsOutputDelay = 1.9e-9;    // 1.9 ns Xilinx LVDS output pin delay
