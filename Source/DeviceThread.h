@@ -335,7 +335,7 @@ namespace ONIRhythmNode
 		String libraryFilePath;
 
 		/** Open the connection to the acquisition board*/
-		bool openBoard(String pathToLibrary);
+		bool openBoard();
 
 		/** Initialize the board*/
 		void initializeBoard();

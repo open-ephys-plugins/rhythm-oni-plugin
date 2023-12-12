@@ -85,28 +85,13 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
 
     sourceBuffers.add(new DataBuffer(2, 10000)); // start with 2 channels and automatically resize
 
-    // Open Opal Kelly XEM6010 board.
-    // Returns 1 if successful, -1 if FrontPanel cannot be loaded, and -2 if XEM6010 can't be found.
-
-#if defined(__APPLE__)
-    File appBundle = File::getSpecialLocation(File::currentApplicationFile);
-    const String executableDirectory = appBundle.getChildFile("Contents/Resources").getFullPathName();
-#else
-    File executable = File::getSpecialLocation(File::currentExecutableFile);
-    const String executableDirectory = executable.getParentDirectory().getFullPathName();
-#endif
-
-    String dirName = executableDirectory;
-    libraryFilePath = dirName;
-    libraryFilePath += File::getSeparatorString();
-    libraryFilePath += okLIB_NAME;
-
     dacStream = new int[8];
     dacChannels = new int[8];
     dacThresholds = new float[8];
     dacChannelsToUpdate = new bool[8];
     
-    if (openBoard(libraryFilePath))
+    // Open ECP5-ONI FPGA board
+    if (openBoard())
     {
         int minor, major;
         if (evalBoard->getFirmwareVersion(&major, &minor))
@@ -328,7 +313,7 @@ Array<int> DeviceThread::getDACchannels() const
 }
 
 
-bool DeviceThread::openBoard(String pathToLibrary)
+bool DeviceThread::openBoard()
 {
     int return_code = evalBoard->open();
 
@@ -338,6 +323,8 @@ bool DeviceThread::openBoard(String pathToLibrary)
     }
     else   // board could not be opened
     {
+        LOGE("Acquisition board not found. Please check that the board is connected.");
+        
         bool response = AlertWindow::showOkCancelBox(AlertWindow::NoIcon,
                                                      "Acquisition board not found.",
                                                      "An acquisition board could not be found. Please connect one now.",
@@ -345,7 +332,7 @@ bool DeviceThread::openBoard(String pathToLibrary)
 
         if (response)
         {
-            openBoard(libraryFilePath.getCharPointer()); // call recursively
+            openBoard(); // call recursively
         }
         else
         {
