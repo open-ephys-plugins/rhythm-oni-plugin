@@ -51,8 +51,19 @@ using namespace ONIRhythmNode;
 
 #define INIT_STEP 64
 
-//#undef LOGD(...) 
-//#define LOGD(...) LOGC(__VA_ARGS__) 
+//#define DEBUG_OVERRIDE
+//#define SYS_DEBUG
+
+#ifdef DEBUG_OVERRIDE
+#undef LOGD(...) 
+#define LOGD(...) LOGC(__VA_ARGS__) 
+#endif
+
+#ifdef SYS_DEBUG
+#define SLOGD(...) LOGD(__VA_ARGS__)
+#else
+#define SLOGD(...)
+#endif
 
 DataThread* DeviceThread::createDataThread(SourceNode *sn)
 {
@@ -362,7 +373,7 @@ void DeviceThread::initializeBoard()
 {
     // Initialize the board
     LOGD("Initializing RHD2000 board.");
-    LOGD("DBG: 0");
+    SLOGD("DBG: 0");
     evalBoard->initialize();
     // This applies the following settings:
     //  - sample rate to 30 kHz
@@ -376,9 +387,9 @@ void DeviceThread::initializeBoard()
     //  - enables all data streams
     //  - clears the ttlOut
     //  - disables all DACs and sets gain to 0
-    LOGD("DBG: 1");
+    SLOGD("DBG: 1");
     setSampleRate(Rhd2000ONIBoard::SampleRate30000Hz);
-    LOGD("DBG: A");
+    SLOGD("DBG: A");
     evalBoard->setCableLengthMeters(Rhd2000ONIBoard::PortA, settings.cableLength.portA);
     evalBoard->setCableLengthMeters(Rhd2000ONIBoard::PortB, settings.cableLength.portB);
     evalBoard->setCableLengthMeters(Rhd2000ONIBoard::PortC, settings.cableLength.portC);
@@ -389,32 +400,32 @@ void DeviceThread::initializeBoard()
     evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd3, 0);
     evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortC, Rhd2000ONIBoard::AuxCmd3, 0);
     evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortD, Rhd2000ONIBoard::AuxCmd3, 0);
-    LOGD("DBG: B");
+    SLOGD("DBG: B");
 
     
     evalBoard->setMaxTimeStep(INIT_STEP);
     evalBoard->setContinuousRunMode(false);
-    LOGD("DBG: C");
+    SLOGD("DBG: C");
     // Start SPI interface
     evalBoard->run();
-    LOGD("DBG: D");
+    SLOGD("DBG: D");
     // Wait for the 60-sample run to complete
     while (evalBoard->isRunning())
     {
         ;
     }
     
-    LOGD("DBG: E");
+    SLOGD("DBG: E");
    
     //stopping clears the buffers, so we don't really need to read this last data
     {
         const ScopedLock lock(oniLock);
         evalBoard->stop();
     }
-    LOGD("DBG: G");
+    SLOGD("DBG: G");
     // Now that ADC calibration has been performed, we switch to the command sequence
     // that does not execute ADC calibration.
-    LOGD("DBG: H");
+    SLOGD("DBG: H");
     evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortA, Rhd2000ONIBoard::AuxCmd3,
         settings.fastSettleEnabled ? 2 : 1);
     evalBoard->selectAuxCommandBank(Rhd2000ONIBoard::PortB, Rhd2000ONIBoard::AuxCmd3,
@@ -442,7 +453,7 @@ void DeviceThread::scanPorts()
         return;
     }
     if (!checkBoardMem()) return;
-    LOGD("DBG: SA");
+    SLOGD("DBG: SA");
     impedanceThread->stopThreadSafely();
 
     //Clear previous known streams
@@ -479,9 +490,9 @@ void DeviceThread::scanPorts()
 
     chipId.insertMultiple(0, -1, 8);
     Array<int> tmpChipId(chipId);
-    LOGD("DBG: SB");
+    SLOGD("DBG: SB");
     setSampleRate(Rhd2000ONIBoard::SampleRate30000Hz, true); // set to 30 kHz temporarily
-    LOGD("DBG: SC");
+    SLOGD("DBG: SC");
     // Enable all data streams, and set sources to cover one or two chips
     // on Ports A-D.
 
@@ -704,8 +715,8 @@ int DeviceThread::getDeviceId(Rhd2000DataBlock* dataBlock, int stream, int& regi
                         (char) dataBlock->auxiliaryData[stream][2][24 + regOffset] == 'R' &&
                         (char) dataBlock->auxiliaryData[stream][2][25 + regOffset] == 'H' &&
                         (char) dataBlock->auxiliaryData[stream][2][26 + regOffset] == 'D');
-
-  /*  std::stringstream ss;
+#ifdef SYS_DEBUG
+    std::stringstream ss;
     ss << std::hex << std::uppercase << std::setfill('0');
     ss << ((uint16)dataBlock->auxiliaryData[stream][2][32 + regOffset] & 0xFF) << " ";
     ss << ((uint16)dataBlock->auxiliaryData[stream][2][33 + regOffset] & 0xFF) << " ";
@@ -713,7 +724,8 @@ int DeviceThread::getDeviceId(Rhd2000DataBlock* dataBlock, int stream, int& regi
     ss << ((uint16)dataBlock->auxiliaryData[stream][2][23 + regOffset] & 0xFF) << " ";
     ss << ((uint16)dataBlock->auxiliaryData[stream][2][19 + regOffset] & 0xFF) << " ";
 
-    LOGD("Detecting ", ss.str());*/
+    SLOGD("Detecting ", ss.str());
+#endif
 
     // If the SPI communication is bad, return -1.  Otherwise, return the Intan
     // chip ID number stored in ROM regstier 63.
@@ -1716,7 +1728,7 @@ bool DeviceThread::updateBuffer()
 
     if (updateSettingsDuringAcquisition)
     {
-        LOGD("DAC");
+        SLOGD("DAC");
         for (int k = 0; k < 8; k++)
         {
             if (dacChannelsToUpdate[k])
