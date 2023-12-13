@@ -305,7 +305,8 @@ void DeviceThread::setDACthreshold(int dacOutput, float threshold)
 
 void DeviceThread::setDACchannel(int dacOutput, int channel)
 {
-    if (channel < getNumDataOutputs(ContinuousChannel::ELECTRODE))
+    dacChannels[dacOutput] = -1;
+    if (channel < getNumDataOutputs(ContinuousChannel::ELECTRODE) && channel > 0)
     {
         int channelCount = 0;
         for (int i = 0; i < enabledStreams.size(); i++)
@@ -314,6 +315,13 @@ void DeviceThread::setDACchannel(int dacOutput, int channel)
             {
                 dacChannels[dacOutput] = channel - channelCount;
                 dacStream[dacOutput] = i;
+
+                //detect if this is a RHD 16ch headstage and adjust accordingly
+                if ((chipId[i] == CHIP_ID_RHD2132) && (numChannelsPerDataStream[i] == 16)) //RHD2132 16ch. headstage
+                {
+                    dacChannels[dacOutput] += RHD2132_16CH_OFFSET;
+                }
+
                 break;
             }
             else
@@ -321,9 +329,10 @@ void DeviceThread::setDACchannel(int dacOutput, int channel)
                 channelCount += numChannelsPerDataStream[i];
             }
         }
-        dacChannelsToUpdate[dacOutput] = true;
-        updateSettingsDuringAcquisition = true;
     }
+    dacChannelsToUpdate[dacOutput] = true;
+    updateSettingsDuringAcquisition = true;
+    
 }
 
 Array<int> DeviceThread::getDACchannels() const

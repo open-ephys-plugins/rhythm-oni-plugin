@@ -227,6 +227,11 @@ void DeviceEditor::updateSettings()
     {
         canvas->update();
     }
+    
+    for (int i = 0; i < AudioChannel::AvailableAudioChannels; i++)
+    {
+        updateAudioChannel(i, electrodeButtons[i]->getChannelNum() - 1);
+    }
 }
 
 void DeviceEditor::comboBoxChanged(ComboBox* comboBox)
@@ -268,23 +273,28 @@ void DeviceEditor::channelStateChanged(Array<int> newChannels)
         selectedChannel = newChannels[0];
     }
 
-
-    board->setDACchannel(int(activeAudioChannel), selectedChannel);
-
-    if (selectedChannel > -1)
-    {
-        electrodeButtons[int(activeAudioChannel)]->setToggleState(true, dontSendNotification);
-        electrodeButtons[int(activeAudioChannel)]->setChannelNum(selectedChannel+1);
-    }
-    else
-    {
-        electrodeButtons[int(activeAudioChannel)]->setChannelNum(selectedChannel);
-        electrodeButtons[int(activeAudioChannel)]->setToggleState(false, dontSendNotification);
-    }
-
+    updateAudioChannel(int(activeAudioChannel), selectedChannel);
 
 }
 
+void DeviceEditor::updateAudioChannel(int dacChannel, int channel)
+{
+    if (channel >= board->getNumDataOutputs(ContinuousChannel::ELECTRODE))
+        channel = -1;
+
+    board->setDACchannel(dacChannel, channel);
+
+    if (channel > -1)
+    {
+        electrodeButtons[dacChannel]->setToggleState(true, dontSendNotification);
+        electrodeButtons[dacChannel]->setChannelNum(channel + 1);
+    }
+    else
+    {
+        electrodeButtons[dacChannel]->setChannelNum(-1);
+        electrodeButtons[dacChannel]->setToggleState(false, dontSendNotification);
+    }
+}
 
 void DeviceEditor::buttonClicked(Button* button)
 {

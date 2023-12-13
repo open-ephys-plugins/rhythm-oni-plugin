@@ -89,6 +89,8 @@ namespace ONIRhythmNode
 
 	private:
 
+		void updateAudioChannel(int dacChannel, int channel);
+
 		OwnedArray<HeadstageOptionsInterface> headstageOptionsInterfaces;
 		OwnedArray<ElectrodeButton> electrodeButtons;
 
@@ -116,7 +118,8 @@ namespace ONIRhythmNode
 
 		enum AudioChannel {
 			LEFT = 0,
-			RIGHT = 1
+			RIGHT = 1,
+			AvailableAudioChannels
 		};
 
 		AudioChannel activeAudioChannel;
