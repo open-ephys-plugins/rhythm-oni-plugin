@@ -26,10 +26,8 @@ jobs:
         xcodebuild -configuration Release
 #    - name: test
 #      run: cd build && ctest
-    - name: deploy
-      if: github.ref == 'refs/heads/main'
+    - name: package
       env:
-        artifactoryApiKey: ${{ secrets.artifactoryApiKey }}
         build_dir: "Build/Release"
         package: RhythmONI-mac
       run: |
@@ -42,5 +40,15 @@ jobs:
         cp -r libONI/osx/*.dylib shared
         cp Resources/Drivers/*.dylib shared
         zipfile=${package}_${new_plugin_ver}.zip
+        echo "zipfile=${zipfile}" >> $GITHUB_ENV
         zip -r -X $zipfile plugins shared
-        curl -H "X-JFrog-Art-Api:$artifactoryApiKey" -T $zipfile "https://openephys.jfrog.io/artifactory/RhythmONI-plugin/mac/$zipfile"
+    - uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.zipfile }}
+        path: ${{ env.zipfile }}
+    - name: deploy
+      if: github.ref == 'refs/heads/main'
+      env:
+        artifactoryApiKey: ${{ secrets.artifactoryApiKey }}
+      run: |
+        curl -H "X-JFrog-Art-Api:$artifactoryApiKey" -T ${{ env.zipfile }} "https://openephys.jfrog.io/artifactory/RhythmONI-plugin/mac/${{ env.zipfile }}"
