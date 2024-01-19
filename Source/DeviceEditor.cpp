@@ -674,7 +674,7 @@ void SampleRateInterface::comboBoxChanged(ComboBox* cb)
     {
         if (cb == rateSelection)
         {
-            board->setSampleRate(cb->getSelectedId()-1);
+            board->setSampleRate(cb->getSelectedId()-1, false, true);
 
             LOGD("Setting sample rate to index ", cb->getSelectedId() - 1);
 

@@ -163,7 +163,7 @@ namespace ONIRhythmNode
 
 		float getAdcBitVolts(int channelNum) const;
 
-		void setSampleRate(int index, bool temporary = false);
+		void setSampleRate(int index, bool temporary = false, bool checkDelays = false);
 
 		double setUpperBandwidth(double upper); // set desired BW, returns actual BW
 		double setLowerBandwidth(double lower);
@@ -278,6 +278,19 @@ namespace ONIRhythmNode
 
 		unsigned int blockSize;
 
+		/** Optimum delay settings */
+		struct OptimumDelay
+		{
+			float portA = -1;
+			float portB = -1;
+			float portC = -1;
+			float portD = -1;
+			float portE = -1;
+			float portF = -1;
+			float portG = -1;
+			float portH = -1;
+		};
+
 		/** Cable length settings */
 		struct CableLength
 		{
@@ -321,6 +334,7 @@ namespace ONIRhythmNode
 			int savedSampleRateIndex = 16;
 
 			CableLength cableLength;
+			OptimumDelay optimumDelay;
 
 			int audioOutputL = -1;
 			int audioOutputR = -1;
