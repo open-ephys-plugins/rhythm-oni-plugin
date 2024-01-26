@@ -140,7 +140,7 @@ namespace ONIRhythmNode
 		// for communication with SourceNode processors:
 		bool foundInputSource() override;
 
-		void scanPorts();
+		void scanPorts(bool initialScan = false);
 
 		void saveImpedances(File& file);
 

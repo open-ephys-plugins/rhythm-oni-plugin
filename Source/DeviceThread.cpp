@@ -176,7 +176,7 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
         }
 
         // automatically find connected headstages
-        scanPorts(); // things would appear to run more smoothly if this were done after the editor has been created
+        scanPorts(true); // things would appear to run more smoothly if this were done after the editor has been created
 
         for (int k = 0; k < 8; k++)
         {
@@ -455,7 +455,7 @@ void DeviceThread::initializeBoard()
 
 }
 
-void DeviceThread::scanPorts()
+void DeviceThread::scanPorts(bool initialScan)
 {
     if (!deviceFound) //Safety to avoid crashes if board not present
     {
@@ -696,19 +696,8 @@ void DeviceThread::scanPorts()
     evalBoard->setCableDelay(Rhd2000ONIBoard::PortC, settings.optimumDelay.portC);
     evalBoard->setCableDelay(Rhd2000ONIBoard::PortD, settings.optimumDelay.portD);
 
-    settings.cableLength.portA =
-        evalBoard->estimateCableLengthMeters(settings.optimumDelay.portA);
-    settings.cableLength.portB =
-        evalBoard->estimateCableLengthMeters(settings.optimumDelay.portB);
-    settings.cableLength.portC =
-        evalBoard->estimateCableLengthMeters(settings.optimumDelay.portC);
-    settings.cableLength.portD =
-        evalBoard->estimateCableLengthMeters(settings.optimumDelay.portD);
+    setSampleRate(settings.savedSampleRateIndex, false, !initialScan); // restore saved sample rate and check delays
 
-    setSampleRate(settings.savedSampleRateIndex, false, true); // restore saved sample rate and check delays
-
-    //updateRegisters();
-    //newScan = true;
 }
 
 int DeviceThread::getDeviceId(Rhd2000DataBlock* dataBlock, int stream, int& register59Value)
@@ -1453,7 +1442,7 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary, bool che
         int delay, hs, id;
         int register59Value;
 
-        for (delay = -1; delay < 2; delay++)
+        for (delay = -2; delay < 2; delay++)
         {
             LOGD("Setting delay to: ", delay);
 
@@ -1537,66 +1526,42 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary, bool che
 
         if (cableIsConnected[0])
         {
-            settings.optimumDelay.portA = std::max(optimumDelay[0] + settings.optimumDelay.portA,
-                +settings.optimumDelay.portA + optimumDelay[1]);
+            int delayShift = std::max(optimumDelay[0], optimumDelay[1]);
 
-            evalBoard->setCableDelay(Rhd2000ONIBoard::PortA, settings.optimumDelay.portA);
-
-            settings.cableLength.portA =
-                evalBoard->estimateCableLengthMeters(settings.optimumDelay.portA);
-
-            evalBoard->setCableLengthMeters(Rhd2000ONIBoard::PortA, settings.cableLength.portA);
+            evalBoard->setCableDelay(Rhd2000ONIBoard::PortA, settings.optimumDelay.portA + delayShift);
 
             LOGD("Port A cable delay at ", settings.boardSampleRate, " samples/sec: ",
-                settings.optimumDelay.portA, " (", settings.cableLength.portA, " meters)");
+                settings.optimumDelay.portA + delayShift);
         }
 
         if (cableIsConnected[1])
         {
-            settings.optimumDelay.portB = std::max(optimumDelay[2] + settings.optimumDelay.portB,
-                +settings.optimumDelay.portB + optimumDelay[3]);
+            int delayShift = std::max(optimumDelay[2], optimumDelay[3]);
 
-            evalBoard->setCableDelay(Rhd2000ONIBoard::PortB, settings.optimumDelay.portB);
-
-            settings.cableLength.portB =
-                evalBoard->estimateCableLengthMeters(settings.optimumDelay.portB);
-
-            evalBoard->setCableLengthMeters(Rhd2000ONIBoard::PortB, settings.cableLength.portB);
+            evalBoard->setCableDelay(Rhd2000ONIBoard::PortB, settings.optimumDelay.portB + delayShift);
 
             LOGD("Port B cable delay at ", settings.boardSampleRate, " samples/sec: ",
-                settings.optimumDelay.portB, " (", settings.cableLength.portB, " meters)");
+                settings.optimumDelay.portB + delayShift);
         }
 
         if (cableIsConnected[2])
         {
-            settings.optimumDelay.portC = std::max(optimumDelay[4] + settings.optimumDelay.portC,
-                +settings.optimumDelay.portC + optimumDelay[5]);
+            int delayShift = std::max(optimumDelay[4], optimumDelay[5]);
 
-            evalBoard->setCableDelay(Rhd2000ONIBoard::PortC, settings.optimumDelay.portC);
-
-            settings.cableLength.portC =
-                evalBoard->estimateCableLengthMeters(settings.optimumDelay.portC);
-
-            evalBoard->setCableLengthMeters(Rhd2000ONIBoard::PortC, settings.cableLength.portC);
+            evalBoard->setCableDelay(Rhd2000ONIBoard::PortC, settings.optimumDelay.portC + delayShift);
 
             LOGD("Port C cable delay at ", settings.boardSampleRate, " samples/sec: ",
-                settings.optimumDelay.portC, " (", settings.cableLength.portC, " meters)");
+                settings.optimumDelay.portC + delayShift);
         }
 
         if (cableIsConnected[3])
         {
-            settings.optimumDelay.portD = std::max(optimumDelay[6] + settings.optimumDelay.portD,
-                +settings.optimumDelay.portD + optimumDelay[7]);
+            int delayShift = std::max(optimumDelay[6], optimumDelay[7]);
 
-            evalBoard->setCableDelay(Rhd2000ONIBoard::PortD, settings.optimumDelay.portD);
-
-            settings.cableLength.portD =
-                evalBoard->estimateCableLengthMeters(settings.optimumDelay.portD);
-
-            evalBoard->setCableLengthMeters(Rhd2000ONIBoard::PortD, settings.cableLength.portD);
+            evalBoard->setCableDelay(Rhd2000ONIBoard::PortD, settings.optimumDelay.portD + delayShift);
 
             LOGD("Port D cable delay at ", settings.boardSampleRate, " samples/sec: ",
-                settings.optimumDelay.portD, " (", settings.cableLength.portD, " meters)");
+                settings.optimumDelay.portD + delayShift);
         }
 
 
