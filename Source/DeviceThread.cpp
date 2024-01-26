@@ -1563,10 +1563,10 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary, bool che
             LOGD("Port D cable delay at ", settings.boardSampleRate, " samples/sec: ",
                 settings.optimumDelay.portD + delayShift);
         }
-
-
-        updateRegisters();
+        
     }
+
+    updateRegisters();
 
 }
 
