@@ -696,6 +696,11 @@ void DeviceThread::scanPorts(bool initialScan)
     evalBoard->setCableDelay(Rhd2000ONIBoard::PortC, settings.optimumDelay.portC);
     evalBoard->setCableDelay(Rhd2000ONIBoard::PortD, settings.optimumDelay.portD);
 
+    LOGD("Set optimum delay for port A: ", settings.optimumDelay.portA);
+    LOGD("Set optimum delay for port B: ", settings.optimumDelay.portB);
+    LOGD("Set optimum delay for port C: ", settings.optimumDelay.portC);
+    LOGD("Set optimum delay for port D: ", settings.optimumDelay.portD);
+
     setSampleRate(settings.savedSampleRateIndex, false, !initialScan); // restore saved sample rate and check delays
 
 }
@@ -1484,7 +1489,7 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary, bool che
 
                 if (headstages[hs]->isConnected())
                 {
-                    id = getDeviceId(dataBlock, hs, register59Value);
+                    id = getDeviceId(dataBlock, headstages[hs]->getStreamIndex(0), register59Value);
 
                     //     LOGD("hs ", hs, " id ", id, " r59 ", (int)register59Value);
 
@@ -1510,7 +1515,7 @@ void DeviceThread::setSampleRate(int sampleRateIndex, bool isTemporary, bool che
 
         Array<int> optimumDelay;
 
-        optimumDelay.insertMultiple(0, 0, headstages.size());
+        optimumDelay.insertMultiple(0, -5, headstages.size());
 
         for (hs = 0; hs < headstages.size(); ++hs)
         {
