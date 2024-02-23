@@ -186,6 +186,10 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
             dacChannels[k] = 0;
             dacThresholds[k] = 0;
         }
+
+        // ensure DSP settings are initialized
+        setDspCutoffFreq(settings.dsp.cutoffFreq);
+        setDSPOffset(settings.dsp.enabled);
     }
 }
 
