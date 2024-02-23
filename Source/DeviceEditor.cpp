@@ -1046,8 +1046,10 @@ DSPInterface::DSPInterface(DeviceThread* board_,
 {
     name = "DSP";
 
+    actualDspCutoffFreq = board->getDspCutoffFreq();
+
     dspOffsetSelection = new Label("DspOffsetSelection",
-                                   String(round(board->getDspCutoffFreq()*10.f)/10.f));
+                                   String(round(actualDspCutoffFreq *10.f)/10.f));
     dspOffsetSelection->setEditable(true, false, false);
     dspOffsetSelection->addListener(this);
     dspOffsetSelection->setBounds(0, 0, 35, 20);
