@@ -5,7 +5,7 @@
 // NB: see https://semver.org/
 #define ONI_VERSION_MAJOR 4
 #define ONI_VERSION_MINOR 3
-#define ONI_VERSION_PATCH 5
+#define ONI_VERSION_PATCH 10
 
 #define ONI_MAKE_VERSION(major, minor, patch) \
     ((major) * 10000 + (minor) * 100 + (patch))
@@ -78,6 +78,7 @@ ONI_EXPORT void oni_destroy_frame(oni_frame_t *frame);
 
 // Helpers
 ONI_EXPORT void oni_version(int *major, int *minor, int *patch);
+ONI_EXPORT const oni_driver_info_t* oni_get_driver_info(const oni_ctx ctx);
 ONI_EXPORT const char *oni_error_str(int err);
 
 #ifdef __cplusplus

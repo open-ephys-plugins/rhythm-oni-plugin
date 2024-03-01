@@ -33,9 +33,10 @@ bool Rhd2000ONIBoard::isUSB3()
     return true;
 }
 
-int Rhd2000ONIBoard::open()
+int Rhd2000ONIBoard::open(const oni_driver_info_t** driverInfo)
 {
     ctx = oni_create_ctx("ft600"); // "ft600" is the driver name for the usb 
+    if (driverInfo) getONIDriverInfo(driverInfo);
     if (ctx == NULL) return -1;
 
     if (oni_init_ctx(ctx, -1) != ONI_ESUCCESS)
@@ -46,6 +47,44 @@ int Rhd2000ONIBoard::open()
     }
 
     return 1;
+}
+
+void Rhd2000ONIBoard::getONIVersion(int* major, int* minor, int* patch)
+{
+    oni_version(major, minor, patch);
+}
+
+void Rhd2000ONIBoard::getONIDriverInfo(const oni_driver_info_t** driverInfo)
+{
+    *driverInfo = oni_get_driver_info(ctx);
+}
+
+bool Rhd2000ONIBoard::getFTDriverInfo(int* major, int* minor, int* patch)
+{
+    uint32_t val;
+    size_t size = sizeof(val);
+    if (oni_get_driver_opt(ctx, 0, &val, &size) == ONI_ESUCCESS)
+    {
+        *major = (val >> 16) & 0xFF;
+        *minor = (val >> 8) & 0xFF;
+        *patch = (val >> 0) & 0xFF;
+        return true;
+    }
+    else return false;
+}
+
+bool Rhd2000ONIBoard::getFTLibInfo(int* major, int* minor, int* patch)
+{
+    uint32_t val;
+    size_t size = sizeof(val);
+    if (oni_get_driver_opt(ctx, 0, &val, &size) == ONI_ESUCCESS)
+    {
+        *major = (val >> 16) & 0xFF;
+        *minor = (val >> 8) & 0xFF;
+        *patch = (val >> 0) & 0xFF;
+        return true;
+    }
+    else return false;
 }
 
 void Rhd2000ONIBoard::initialize()

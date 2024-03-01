@@ -107,17 +107,12 @@ DeviceThread::DeviceThread(SourceNode* sn) : DataThread(sn),
     const String executableDirectory = executable.getParentDirectory().getFullPathName();
 #endif
 
-    String dirName = executableDirectory;
-    libraryFilePath = dirName;
-    libraryFilePath += File::getSeparatorString();
-    libraryFilePath += okLIB_NAME;
-
     dacStream = new int[8];
     dacChannels = new int[8];
     dacThresholds = new float[8];
     dacChannelsToUpdate = new bool[8];
-    
-    if (openBoard(libraryFilePath))
+
+    if (openBoard(true))
     {
         int minor, major;
         if (evalBoard->getFirmwareVersion(&major, &minor))
@@ -352,9 +347,25 @@ Array<int> DeviceThread::getDACchannels() const
 }
 
 
-bool DeviceThread::openBoard(String pathToLibrary)
+bool DeviceThread::openBoard(bool displayInfo)
 {
-    int return_code = evalBoard->open();
+    const oni_driver_info_t *driverInfo;
+    int return_code = evalBoard->open(&driverInfo);
+    if (displayInfo)
+    {
+        int major, minor, patch;
+        evalBoard->getONIVersion(&major, &minor, &patch);
+        LOGC("ONI Library version: ", major, ".", minor, ".", patch);
+        LOGC("ONI Driver: ", driverInfo->name, " Version: ", driverInfo->major, ".", driverInfo->minor, ".", driverInfo->patch, (driverInfo->pre_release ? "-" : ""), (driverInfo->pre_release ? driverInfo->pre_release : ""));
+        if (evalBoard->getFTDriverInfo(&major, &minor, &patch))
+        {
+            LOGC("FTDI Driver version: ", major, ".", minor, ".", patch);
+        }
+        if (evalBoard->getFTLibInfo(&major, &minor, &patch))
+        {
+            LOGC("FTDI Library version: ", major, ".", minor, ".", patch);
+        }
+    }
 
     if (return_code == 1)
     {
@@ -369,7 +380,7 @@ bool DeviceThread::openBoard(String pathToLibrary)
 
         if (response)
         {
-            openBoard(libraryFilePath.getCharPointer()); // call recursively
+            openBoard(); // call recursively
         }
         else
         {

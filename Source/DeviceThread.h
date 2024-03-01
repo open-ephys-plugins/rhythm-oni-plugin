@@ -345,11 +345,8 @@ namespace ONIRhythmNode
 
 		} settings;
 
-		/** Path to Opal Kelly library file*/
-		String libraryFilePath;
-
 		/** Open the connection to the acquisition board*/
-		bool openBoard(String pathToLibrary);
+		bool openBoard(bool displayInfo = false);
 
 		/** Initialize the board*/
 		void initializeBoard();

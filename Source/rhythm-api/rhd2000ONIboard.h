@@ -66,7 +66,7 @@ public:
     };
 
     bool isUSB3();
-    int open();
+    int open(const oni_driver_info_t** driverInfo = nullptr);
     void initialize();
 
     void setCableDelay(BoardPort port, int delay);
@@ -130,6 +130,11 @@ public:
      void setDacGain(int gain);
 
     bool getFirmwareVersion(int* major, int* minor) const;
+
+    void getONIVersion(int* major, int* minor, int* patch);
+    void getONIDriverInfo(const oni_driver_info_t** driverInfo);
+    bool getFTDriverInfo(int* major, int* minor, int* patch);
+    bool getFTLibInfo(int* major, int* minor, int* patch);
 
     enum BoardMemState
     {
