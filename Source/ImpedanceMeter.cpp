@@ -359,7 +359,7 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     int numPeriods = (0.020 * actualImpedanceFreq); // Test each channel for at least 20 msec...
     if (numPeriods < 5) numPeriods = 5; // ...but always measure across no fewer than 5 complete periods
     double period = board->settings.boardSampleRate / actualImpedanceFreq;
-    int numBlocks = ceil((numPeriods + 2) * period / (float(SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3()))));  // + 2 periods to give time to settle initially
+    int numBlocks = ceil((numPeriods + 2) * period / float(SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3())));  // + 2 periods to give time to settle initially
     if (numBlocks < 2) numBlocks = 2;   // need first block for command to switch channels to take effect.
 
     CHECK_EXIT;
