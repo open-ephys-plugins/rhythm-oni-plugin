@@ -360,7 +360,9 @@ void ImpedanceMeter::runImpedanceMeasurement(Impedances& impedances)
     if (numPeriods < 5) numPeriods = 5; // ...but always measure across no fewer than 5 complete periods
     double period = board->settings.boardSampleRate / actualImpedanceFreq;
     int numBlocks = ceil((numPeriods + 2) * period / float(SAMPLES_PER_DATA_BLOCK(board->evalBoard->isUSB3())));  // + 2 periods to give time to settle initially
+    LOGD("ImpedanceMeter: Initial numBlocks = ", numBlocks);
     if (numBlocks < 2) numBlocks = 2;   // need first block for command to switch channels to take effect.
+    LOGD("ImpedanceMeter: Padded numBlocks = ", numBlocks);
 
     CHECK_EXIT;
     board->settings.dsp.cutoffFreq = board->chipRegisters.setDspCutoffFreq(board->settings.dsp.cutoffFreq);
