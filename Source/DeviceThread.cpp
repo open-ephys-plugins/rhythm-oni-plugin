@@ -2136,7 +2136,6 @@ short DeviceThread::getAdcRange(int channel) const
 void DeviceThread::runImpedanceTest()
 {
     if (!checkBoardMem()) return;
-    //impedanceThread->stopThreadSafely();
 
     setSampleRate(Rhd2000ONIBoard::SampleRate30000Hz, true, false); // set to 30 kHz temporarily
 
