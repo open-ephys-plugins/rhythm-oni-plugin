@@ -351,12 +351,15 @@ bool DeviceThread::openBoard(bool displayInfo)
 {
     const oni_driver_info_t *driverInfo;
     int return_code = evalBoard->open(&driverInfo);
-    if (displayInfo)
+
+    int major, minor, patch;
+    evalBoard->getONIVersion(&major, &minor, &patch);
+    LOGC("ONI Library version: ", major, ".", minor, ".", patch);
+    LOGC("ONI Driver: ", driverInfo->name, " Version: ", driverInfo->major, ".", driverInfo->minor, ".", driverInfo->patch, (driverInfo->pre_release ? "-" : ""), (driverInfo->pre_release ? driverInfo->pre_release : ""));
+
+    if (return_code == 1) // successfully opened board
     {
-        int major, minor, patch;
-        evalBoard->getONIVersion(&major, &minor, &patch);
-        LOGC("ONI Library version: ", major, ".", minor, ".", patch);
-        LOGC("ONI Driver: ", driverInfo->name, " Version: ", driverInfo->major, ".", driverInfo->minor, ".", driverInfo->patch, (driverInfo->pre_release ? "-" : ""), (driverInfo->pre_release ? driverInfo->pre_release : ""));
+       
         if (evalBoard->getFTDriverInfo(&major, &minor, &patch))
         {
             LOGC("FTDI Driver version: ", major, ".", minor, ".", patch);
@@ -365,10 +368,7 @@ bool DeviceThread::openBoard(bool displayInfo)
         {
             LOGC("FTDI Library version: ", major, ".", minor, ".", patch);
         }
-    }
 
-    if (return_code == 1)
-    {
         deviceFound = true;
     }
     else   // board could not be opened
