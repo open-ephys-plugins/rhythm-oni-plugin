@@ -255,7 +255,7 @@ void DeviceThread::handleBroadcastMessage(String msg)
                     digitalOutputCommands.push(command);
 
                     DigitalOutputTimer* timer = new DigitalOutputTimer(this, ttlLine, eventDurationMs);
-
+                    
                     digitalOutputTimers.add(timer);
 
                 }
@@ -373,6 +373,9 @@ bool DeviceThread::openBoard(bool displayInfo)
     }
     else   // board could not be opened
     {
+
+        LOGC("No ONI device found. Is one connected?")
+
         bool response = AlertWindow::showOkCancelBox(AlertWindow::NoIcon,
                                                      "Acquisition board not found.",
                                                      "An acquisition board could not be found. Please connect one now.",
@@ -380,10 +383,12 @@ bool DeviceThread::openBoard(bool displayInfo)
 
         if (response)
         {
+            LOGC("  Checking again...");
             openBoard(); // call recursively
         }
         else
         {
+            LOGC("  User canceled device search.");
             deviceFound = false;
         }
 
