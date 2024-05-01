@@ -1,6 +1,6 @@
 # Rhythm ONI Plugin
 
-![acquisition-board-plugin-screenshot](https://open-ephys.github.io/gui-docs/_images/rhythmfpga-01.png)
+![acquisition-board-plugin-screenshot](https://open-ephys.github.io/gui-docs/_images/oefpgaacquisitionboard-01.png)
 
 A set of plugins for streaming data from a device running ONI compatible version of Intan's Rhythm firmware. 
 
@@ -10,11 +10,11 @@ This device is currently supported:
 
 ## Installation
 
-This plugins can be added via the Open Ephys GUI's built-in Plugin Installer. Press **ctrl-P** or **⌘P** to open the Plugin Installer, browse to "Acquisition Board (OE FPGA)", and click the "Install" button. The Acquisition Board (OE FPGA) plugin should now be available to use.
+This plugins can be added via the Open Ephys GUI's built-in Plugin Installer. Press **ctrl-P** or **⌘P** to open the Plugin Installer, browse to "OE FPGA Acquisition Board", and click the "Install" button. The OE FPGA Acquisition Board plugin should now be available to use.
 
 ## Usage
 
-Instructions for using the Rhythm ONI Plugin are available [here](https://open-ephys.github.io/gui-docs/User-Manual/Plugins/Rhythm-Plugins.html).
+Instructions for using the Rhythm ONI Plugin are available [here](https://open-ephys.github.io/gui-docs/User-Manual/Plugins/OE-FPGA-Acquisition-Board.html).
 
 ## Building from source
 
@@ -78,7 +78,7 @@ From the `Build` directory, enter:
 cmake -G "Xcode" ..
 ```
 
-Next, launch Xcode and open the `rhythm-plugins.xcodeproj` file that now lives in the “Build” directory.
+Next, launch Xcode and open the `rhythm-oni-plugin.xcodeproj` file that now lives in the “Build” directory.
 
 Running the `ALL_BUILD` scheme will compile the plugin; running the `INSTALL` scheme will install the `.bundle` file to `/Users/<username>/Library/Application Support/open-ephys/plugins-api8`. The new plugins should be available the next time you launch the GUI from Xcode.
 
