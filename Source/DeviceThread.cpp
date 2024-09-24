@@ -2095,6 +2095,9 @@ void DeviceThread::enableBoardLeds(bool enable)
 {
     settings.ledsEnabled = enable;
 
+    if (evalBoard == nullptr)
+        return;
+
     if (isAcquisitionActive())
         updateSettingsDuringAcquisition = true;
     else
