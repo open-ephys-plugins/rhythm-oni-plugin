@@ -2093,10 +2093,11 @@ int DeviceThread::getHeadstageChannel (int& hs, int ch) const
 
 void DeviceThread::enableBoardLeds(bool enable)
 {
-    settings.ledsEnabled = enable;
 
-    if (evalBoard == nullptr)
+    if (!deviceFound)
         return;
+
+    settings.ledsEnabled = enable;
 
     if (isAcquisitionActive())
         updateSettingsDuringAcquisition = true;
